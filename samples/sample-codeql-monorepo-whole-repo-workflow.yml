@@ -1,0 +1,68 @@
+# This workflow scans all sub projects of a monorepo.
+# 
+# It uses Actions from `advanced-security/monorepo-code-scanning-action`
+#
+# The specific language and paths covered by each project are passed to the CodeQL analysis, along with a custom analysis workflow if one is provided.
+#
+# For TypeScript/JavaScript, Python, and Ruby, and when using 'build-mode: none' for Java and C#, you can let the CodeQL Action handle the "build" step,
+# and only target the project that is being changed by the PR.
+#
+# For Kotlin, Swift and C/C++, or when not using 'build-mode: none' for Java and C#, you will need to manually build the project,
+# in a way that you can define in the optional custom analysis workflow.
+#
+# If you want to specifiy custom queries, you can do so in the custom analysis workflow.
+#
+# You can find an example of what that looks like in this repository at .github/workflows/custom-codeql-analysis.yml
+
+name: "CodeQL monorepo - scheduled"
+
+on:
+  workflow_dispatch:
+  schedule:
+    # every day at midnight, please edit as appropriate
+    - cron: "0 0 * * *"
+
+jobs:
+  whole-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      projects: ${{ steps.whole-repo.outputs.projects }}
+    steps:
+      - name: Scan whole repo, split up by project
+        id: whole-repo
+        uses: advanced-security/monorepo-code-scanning-action/whole-repo@main
+        with:
+          # If you are using a C# build.xml file, you will need to set any variables in an inline YAML config, as shown, and reference that XML file here with the `build-xml` input
+          # ⚠️ This is an example and must be tuned for using in your own repository. ⚠️
+          variables: |
+            FolderADir: src/FolderA
+            FolderBDir: src/FolderB
+            FolderCDir: src/FolderC
+          build-xml: build-projects.xml
+
+          # Alternatively, you can manually set of the project structure with a JSON input file.
+          # project-json: projects.json
+
+          # This takes the form:
+          # {
+          #    "csharp": {
+          #      "projectName": ["FolderA", "FolderB"]
+          #    }
+          # }
+
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    needs: whole-repo
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.whole-repo.outputs.projects).projects }}
+    steps:
+      - name: Analyze code
+        uses: advanced-security/monorepo-code-scanning-action/scan@main
+        # custom-analysis: true

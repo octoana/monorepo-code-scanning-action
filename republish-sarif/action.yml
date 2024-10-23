@@ -1,0 +1,43 @@
+name: Republish
+description: 'Republish SARIF for languages that were not scanned in this PR'
+inputs:
+  projects:
+    description: 'Projects scanned in this PR'
+    required: true
+    type: string
+  merged-only:
+    description: 'Only republish SARIF when the PR merges'
+    required: false
+    type: boolean
+    default: false
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/github-script@v7
+      if: github.event_name == 'pull_request' && ( inputs.merged_only == false || github.event.pull_request.merged == true )
+      env:
+        projects: ${{ inputs.projects }}
+      with:
+        script: |
+          const path = require('node:path')
+          const action_path = process.env.GITHUB_ACTION_PATH
+          const script = require(path.join(action_path, 'republish-sarif.js'))
+          script(github, context, core)
+
+    # if we're in PR mode, upload to the PR itself
+    - uses: github/codeql-action/upload-sarif@v3
+      if: github.event_name == 'pull_request' && github.event.pull_request.merged != true && hashFiles('sarif/*.sarif') != ''
+      with:
+        sarif_file: sarif
+
+    # if we're in merged mode, upload to the PR target
+    # this uses the HEAD SHA of the PR, which is the same as the merge commit SHA
+    # if "require PRs to be up to date before merging" is enabled
+    # otherwise, we have a hard time determining what the commit SHA of the merge commit is
+    - uses: github/codeql-action/upload-sarif@v3
+      if: github.event.pull_request.merged == true && hashFiles('sarif/*.sarif') != ''
+      with:
+        sarif_file: sarif
+        ref: ${{ 'refs/heads/' }}${{ github.event.pull_request.base.ref }}
+        sha: ${{ github.event.pull_request.head.sha }}

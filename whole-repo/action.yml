@@ -1,0 +1,125 @@
+name: 'Whole repo'
+description: 'Scan all of the defined projects, by preparing the scan matrix'
+inputs:
+  variables:
+    description: 'YAML string of variables to replace in an XML build file (optional)'
+    required: false
+  build-xml:
+    description: 'Path to the XML file that defines the projects to build (optional)'
+    required: false
+  projects-json:
+    description: 'Path to the JSON file that defines the projects to build (optional)'
+    required: false
+outputs:
+  projects:
+    description: Matrix of the projects to analyze
+    value: ${{ steps.build-matrix.outputs.result }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Build sparse checkout
+      id: build-sparse-checkout
+      env:
+        BUILD_XML: ${{ inputs.build-xml }}
+        PROJECTS_JSON: ${{ inputs.projects-json }}
+      run: |
+        SPARSE_CHECKOUT=""
+        if [ -n "$BUILD_XML" ]; then
+          echo "::notice::Building sparse checkout from $BUILD_XML"
+          SPARSE_CHECKOUT+="${BUILD_XML}\n"
+          SPARSE_CHECKOUT+="changes/build-projects-from-xml.js\n"
+        elif [ -n "$PROJECTS_JSON" ]; then
+          echo "::notice::Building sparse checkout from $PROJECTS_JSON"
+          SPARSE_CHECKOUT+="${PROJECTS_JSON}\n"
+        else
+          echo "::error::No project structure file provided"
+          exit 1
+        fi
+        SPARSE_CHECKOUT+="changes/build-matrix.js\n"
+        {
+          echo 'sparse-checkout<<EOF'
+          echo "$SPARSE_CHECKOUT"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: ${{ steps.build-sparse-checkout.outputs.sparse-checkout }}
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install npm dependencies
+      run: |
+        cd $GITHUB_ACTION_PATH
+        npm install xml2js@0.6.2 yaml@2.5.1
+      shell: bash
+
+    - name: Read projects JSON
+      id: read-projects
+      if: ${{ inputs.projects-json }}
+      uses: actions/github-script@v7
+      env:
+        filename: ${{ inputs.projects-json }}
+      with:
+        result-encoding: string
+        script: |
+          const fs = require('fs')
+          try {
+            const projects = fs.readFileSync(process.env.filename, 'utf8')
+            return projects
+          } catch (error) {
+            core.setFailed(`Failed to read projects JSON: ${error}`)
+          }
+
+    - name: Process projects XML into JSON
+      id: build-projects
+      if: ${{ inputs.projects-json == '' && inputs.build-xml != '' }}
+      uses: actions/github-script@v7
+      env:
+        filename: ${{ inputs.build-xml }}
+        variables: ${{ inputs.variables }}
+      with:
+        result-encoding: string
+        script: |
+          const path = require('node:path')
+          const action_path = process.env.GITHUB_ACTION_PATH
+          const script = require(path.join(action_path, '..', 'changes', 'build-projects-from-xml.js'))
+          return script(github, context, core)
+
+    - name: Debug read projects
+      run: |
+        echo "Read projects from JSON: ${result}"
+      shell: bash
+      env:
+        result: ${{ toJson(steps.read-projects.outputs) }}
+
+    - name: Debug build projects
+      run: |
+        echo "Build projects from XML: ${result}"
+      shell: bash
+      env:
+        result: ${{ toJson(steps.build-projects.outputs) }}
+
+    - name: Build matrix
+      id: build-matrix
+      uses: actions/github-script@v7
+      env:
+        projects: ${{ steps.read-projects.outputs.result || steps.build-projects.outputs.projects }}
+      with:
+        script: |
+          const path = require('node:path')
+          const action_path = process.env.GITHUB_ACTION_PATH
+          const script = require(path.join(action_path, '..', 'changes', 'build-matrix.js'))
+          return script(github, context, core)
+
+    - name: Debug matrix
+      run: |
+        echo "${result}"
+      shell: bash
+      env:
+        result: ${{ toJson(steps.build-matrix.outputs) }}

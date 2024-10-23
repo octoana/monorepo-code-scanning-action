@@ -1,0 +1,96 @@
+# ⚠️ This is an example and must be tuned for using in your own repository. ⚠️
+# 
+# This workflow determines which sub projects of a monorepo are affected by a PR, and then runs CodeQL analysis on those projects.
+#
+# It uses Actions from `advanced-security/monorepo-code-scanning-action`
+#
+# To use it, it would be placed under `./github/workflows` in the monorepo.
+#
+# The specific language and paths affected are passed to the CodeQL analysis, along with a custom analysis workflow if one is provided.
+#
+# For TypeScript/JavaScript, Python, and Ruby, and when using 'build-mode: none' for Java and C#, you can let the CodeQL Action handle the "build" step,
+# and only target the project that is being changed by the PR.
+#
+# For Kotlin, Swift and C/C++, or when not using 'build-mode: none' for Java and C#, you will need to manually build the project,
+# in a way that you can define in the optional custom analysis workflow.
+#
+# If you want to specifiy custom queries, you can do so in the custom analysis workflow.
+#
+# You can find an example of what that looks like in this repository at .github/workflows/custom-codeql-analysis.yml
+#
+# ⚠️ This is an example and must be tuned for using in your own repository. ⚠️
+
+name: "CodeQL monorepo - PR"
+
+on:
+  pull_request:
+    branches: ["main"]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      projects: ${{ steps.changes.outputs.projects }}
+    steps:
+      - name: Spot changes to projects
+        id: changes
+        uses: advanced-security/monorepo-code-scanning-action/changes@main
+        with:
+          # If you are using a C# build.xml file, you will need to set any variables in an inline YAML config, as shown, and reference that XML file here with the `build-xml` input
+          # ⚠️ This is an example and must be tuned for using in your own repository. ⚠️
+          variables: |
+            FolderADir: src/FolderA
+            FolderBDir: src/FolderB
+            FolderCDir: src/FolderC
+          build-xml: build-projects.xml
+
+          # Alternatively, you can manually set of the project structure with a JSON input file.
+          # project-json: projects.json
+
+          # This takes the form:
+          # {
+          #    "csharp": {
+          #      "projectName": ["FolderA", "FolderB"]
+          #    }
+          # }
+
+  scan:
+    if: needs.changes.outputs.scan-required == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    needs: changes
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.changes.outputs.projects).projects }}
+    steps:
+      - name: Analyze code
+        uses: advanced-security/monorepo-code-scanning-action/scan@main
+        # If you have a custom analysis workflow defined at .github/workflows/custom-codeql-analysis.yml, then set this to 'true' so that it is run.
+        # custom-analysis: true
+
+# You must use the 'republish' step to republish the results of missing analyses from the target branch to the PR, to pass required checks.
+# It will also copy these results to the target branch on merge, so that the full results are available in the target branch.
+
+  republish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    needs: changes
+    steps:
+      - name: Republish results
+        uses: advanced-security/monorepo-code-scanning-action/republish-sarif@main
+        with:
+          projects: ${{ needs.changes.outputs.projects }}
