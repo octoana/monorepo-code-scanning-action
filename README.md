@@ -3,9 +3,9 @@
 > [!WARNING]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
-Focus CodeQL scans on just the changed parts of your monorepo, split up as you define.
+Focus CodeQL scans on parts of your monorepo, split up as you define, to minimize work and allow scanning a monorepo in parallel for scheduled scans.
 
-For an example of how to use it, see the `./samples/sample-codeql-monorepo-workflow.yml` in this repository.
+For an example of how to use it for PR scans, see the `./samples/sample-codeql-monorepo-pr-workflow.yml` in this repository. For a schedule scan example, see `./samples/sample-codeql-monorepo-whole-repo-workflow.yml`
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
