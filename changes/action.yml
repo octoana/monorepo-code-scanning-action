@@ -20,8 +20,14 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout repo
+    - if: ${{ inputs.build-xml != '' || inputs.projects-json != '' }}
+      name: Checkout project definition files
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          ${{ inputs.build-xml }}
+          ${{ inputs.projects-json }}
+        sparse-checkout-cone-mode: false
 
     - name: Install Node.js
       uses: actions/setup-node@v4
@@ -36,7 +42,7 @@ runs:
 
     - name: Read projects JSON
       id: read-projects
-      if: ${{ inputs.projects-json }}
+      if: ${{ inputs.projects-json != '' }}
       uses: actions/github-script@v7
       env:
         filename: ${{ inputs.projects-json }}
