@@ -39,6 +39,7 @@ jobs:
       contents: read
     outputs:
       projects: ${{ steps.changes.outputs.projects }}
+      scan-required: ${{ steps.changes.outputs.scan-required }}
     steps:
       - name: Spot changes to projects
         id: changes
