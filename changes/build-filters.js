@@ -19,7 +19,7 @@ function run(github, context, core) {
   // which filenames to include in the analysis if they are changed, per language
   // TODO: make this configurable (adding new globs) using a file in the repo
   const globs = {
-    csharp: ["**/*.cs", "**/*.csproj", "**/*.sln"],
+    csharp: ["**/*.aspx", "**/*.cs", "**/*.cshtml", "**/*.csproj",   "**/packages.config",  "**/*.razor", "**/*.sln", "**/*.xaml",],
     python: [
       "**/*.py",
       "**/pyproject.toml",
