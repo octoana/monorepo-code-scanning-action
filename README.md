@@ -50,9 +50,6 @@ graph TD
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that sample workflow, altering the inputs as required.
 
-> [!NOTE]
-> These Actions are composite Actions, and rely on steps using `bash`, so are not currently compatible with Windows runners.
-
 ### Branch protection
 
 To make sure you cover all code changes without needing to scan pushes to your default branch, ensure you use a repository ruleset to restrict direct pushes to your default branch.
@@ -91,11 +88,9 @@ The SARIF is reublished, meaning a complete set of Code Scanning results is atta
 
 ## Limitations
 
-This tool is currently designed to split up scanning of a monrepo with CodeQL only. It is not designed to work with other scanning tools, but could be adapted to do so.
+This tool is currently designed to split up scanning of a monorepo with CodeQL only. It is not designed to work with other scanning tools, but could be adapted to do so.
 
 The custom CodeQL analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
-
-It is necessary to do a shallow checkout of the repository in the `changes` step, followed by further git operations done by the `dorny/paths-filter` Action, to get the correct diff for the `scan` step. For large monorepos this can be slow.
 
 This tool cannot help with a monolith that cannot be split up into smaller projects.
 
