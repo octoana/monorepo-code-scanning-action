@@ -3,7 +3,7 @@
 > [!WARNING]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
-Focus CodeQL scans on parts of your monorepo, split up as you define, to minimize work and allow scanning a monorepo in parallel for scheduled scans.
+Focus Code Scanning with GitHub Advanced Security on parts of your monorepo, split up as you define. This can minimize CI work and time and allow scanning a monorepo in parallel for scheduled scans.
 
 For an example of how to use it for PR scans, see the `./samples/sample-codeql-monorepo-pr-workflow.yml` in this repository. For a schedule scan example, see `./samples/sample-codeql-monorepo-whole-repo-workflow.yml`
 
@@ -14,7 +14,7 @@ The steps pass information along to each other to work properly, so you need to 
 
 ## Overview
 
-If you can define a project structure for your repo, with each project being a specific language and subset of folders, then you can use this tool to split up scans of your monorepo.
+You must define a project structure for your repo, with each project being a specific language and subset of paths of directories, to use this tool to split up scans of your monorepo.
 
 If you use C# and an existing [MSBuild project file](https://learn.microsoft.com/en-us/visualstudio/msbuild/walkthrough-creating-an-msbuild-project-file-from-scratch?view=vs-2022), you can directly use that to define the project structure.
 
@@ -22,8 +22,38 @@ For other cases you need to create a JSON file that describes that structure, li
 
 ```json
 {
-  "<language>": {
-    "<project name>" : ["<folder path 1>", "<folder path 2>", ...],
+  "<language>":
+    "projects": {
+      "<project name>": {
+        "paths":
+          [
+            "<folder path 1>",
+            "<folder path 2>",
+            ...
+          ]
+      },
+    ...
+  },
+  ...
+}
+```
+
+You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build_mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
+
+```json
+{
+  "<language>":
+    "build_mode": "none",
+    "projects": {
+      "<project name>": {
+        "build_mode": "auto",
+        "paths":
+          [
+            "<folder path 1>",
+            "<folder path 2>",
+            ...
+          ]
+      },
     ...
   },
   ...

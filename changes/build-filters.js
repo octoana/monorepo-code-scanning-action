@@ -20,7 +20,7 @@ function run(github, context, core) {
   const filters = {};
 
   // which filenames to include in the analysis if they are changed, per language
-  // TODO: make this configurable (adding new globs) using a file in the repo
+  // this is configurable (adding new globs) using an Action input
   const globs = {
     csharp: [
       "**/*.aspx",
@@ -90,11 +90,13 @@ function run(github, context, core) {
     filters[language].push(...globs);
   }
 
-  for (const [language, details] of Object.entries(projects)) {
+  for (const [language, lang_data] of Object.entries(projects)) {
     const lang_globs = globs.get(language, ["**/*"]);
 
-    for (const [project, paths] of Object.entries(details)) {
-      for (const path of paths) {
+    const project_entries = lang_data.projects;
+
+    for (const [project, project_data] of Object.entries(project_entries)) {
+      for (const path of project_data.paths) {
         filters[project] ??= [];
         filters[project].push(...lang_globs.map((glob) => `${path}/${glob}`));
       }
