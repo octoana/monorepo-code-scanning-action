@@ -31,7 +31,7 @@ function run(github, context, core) {
     core.debug("Language: " + language);
     core.debug("Projects: " + JSON.stringify(lang_data.projects));
 
-    projects_to_scan[language] = Object.fromEntries(
+    projects_to_scan[language]["projects"] = Object.fromEntries(
       Object.entries(lang_data.projects).filter((project) => {
         const [name, project_data] = project;
         core.debug("Project: " + name);
@@ -39,6 +39,10 @@ function run(github, context, core) {
         return changes.includes(name) || filters === undefined;
       })
     );
+
+    if (lang_data.build_mode !== undefined) {
+      projects_to_scan[language]["build_mode"] = lang_data.build_mode;
+    }
   }
 
   core.debug("Projects to scan:");
