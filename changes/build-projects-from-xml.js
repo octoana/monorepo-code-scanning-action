@@ -65,7 +65,7 @@ function run(github, context, core) {
       // and put into the required projects structure with a specified "paths" key for each project
       const projects = {
         "csharp": {
-          "projects": Object.fromEntries(groupedIncludes.entries().map(
+          "projects": Object.fromEntries(Object.entries(groupedIncludes).map(
             (include) => {
               const [name, paths] = include;
               return [name, {"paths": paths}];
