@@ -91,7 +91,7 @@ function run(github, context, core) {
   }
 
   for (const [language, lang_data] of Object.entries(projects)) {
-    const lang_globs = globs.get(language, ["**/*"]);
+    const lang_globs = globs[language] ?? ["**/*"];
 
     const project_entries = lang_data.projects;
 
