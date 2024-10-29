@@ -31,6 +31,8 @@ function run(github, context, core) {
     core.debug("Language: " + language);
     core.debug("Projects: " + JSON.stringify(lang_data.projects));
 
+    projects_to_scan[language] = {};
+
     projects_to_scan[language]["projects"] = Object.fromEntries(
       Object.entries(lang_data.projects).filter((project) => {
         const [name, project_data] = project;
