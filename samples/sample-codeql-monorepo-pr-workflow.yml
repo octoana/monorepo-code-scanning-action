@@ -64,7 +64,7 @@ jobs:
           # }
 
   scan:
-    if: needs.changes.outputs.scan-required == true
+    if: needs.changes.outputs.scan-required == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
