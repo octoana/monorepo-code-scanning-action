@@ -10,6 +10,9 @@ inputs:
   projects-json:
     description: 'Path to the JSON file that defines the projects to build (optional)'
     required: false
+  extra-globs:
+    description: 'Extra globs to include in the scan in JSON format, by language (optional)'
+    required: false
 outputs:
   projects:
     description: Matrix of the projects to analyze
@@ -57,7 +60,7 @@ runs:
             core.setFailed(`Failed to read projects JSON: ${error}`)
           }
 
-    - name: Process projects XML into JSON
+    - name: Process MSBuild XML into JSON
       id: build-projects
       if: ${{ inputs.projects-json == '' && inputs.build-xml != '' }}
       uses: actions/github-script@v7
@@ -83,6 +86,7 @@ runs:
       uses: actions/github-script@v7
       env: 
         projects: ${{ steps.read-projects.outputs.result || steps.build-projects.outputs.projects }}
+        extra_globs: ${{ inputs.extra-globs }}
       with:
         result-encoding: string
         script: |
