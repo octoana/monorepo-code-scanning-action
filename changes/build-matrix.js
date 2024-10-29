@@ -55,6 +55,7 @@ function run(github, context, core) {
         sparse_checkout: Array.from(paths).join("\n"),
         codeql_config: "paths:\n  - " + Array.from(paths).join("\n  - "),
         language: language,
+        build_mode: 'none', // TODO: make this configurable
       };
 
       filtered_projects.push(project);
