@@ -18,12 +18,19 @@ runs:
         build-mode: ${{ matrix.project.build_mode }}
         config: ${{  matrix.project.codeql_config }}
 
-    - name: Initialize CodeQL (manual build)
+    - name: Initialize CodeQL and build (manual)
       if: matrix.project.build_mode == 'manual'
-      uses: ./.github/workflows/codeql-custom-analysis.yml
+      uses: ./.github/workflows/code-scanning-custom-analysis.yml
       with:
         language: ${{  matrix.project.language }}
         codeql-config: ${{  matrix.project.codeql_config }}
+        name: ${{  matrix.project.name }}
+
+    - name: Scan project (non CodeQL)
+      if: matrix.project.build_mode == 'other'
+      uses: ./.github/workflows/code-scanning-custom-analysis.yml
+      with:
+        language: ${{  matrix.project.language }}
         name: ${{  matrix.project.name }}
 
     - name: Perform CodeQL Analysis
