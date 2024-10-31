@@ -2,6 +2,7 @@ const yaml = require("yaml");
 
 function run(github, context, core) {
   const raw_projects = process.env.projects;
+  const raw_extra_globs = process.env.extra_globs;
 
   if (!raw_projects) {
     core.setFailed("projects is required");
@@ -14,18 +15,34 @@ function run(github, context, core) {
   core.debug(typeof projects);
   core.debug(Object.entries(projects));
 
+  const extra_globs = raw_extra_globs != "" ? JSON.parse(raw_extra_globs) : {};
+
   const filters = {};
 
   // which filenames to include in the analysis if they are changed, per language
-  // TODO: make this configurable (adding new globs) using a file in the repo
+  // this is configurable (adding new globs) using an Action input
   const globs = {
-    csharp: ["**/*.aspx", "**/*.cs", "**/*.cshtml", "**/*.csproj",   "**/packages.config",  "**/*.razor", "**/*.sln", "**/*.xaml",],
+    csharp: [
+      "**/*.aspx",
+      "**/*.cs",
+      "**/*.cshtml",
+      "**/*.csproj",
+      "**/packages.config",
+      "**/*.razor",
+      "**/*.sln",
+      "**/*.xaml",
+      "**/*.xml",
+    ],
     python: [
       "**/*.py",
       "**/pyproject.toml",
       "**/Pipfile",
       "**/Pipfile.lock",
       "**/requirements.txt",
+      "**/requirements-dev.txt",
+      "**/requirements.in",
+      "**/requirements-dev.in",
+      "**/setup.cfg",
     ],
     go: ["**/*.go", "**/go.mod", "**/go.sum"],
     java: ["**/*.java", "**/*.gradle", "gradle.*", "**/*.kt", "**/*.jar"],
@@ -68,16 +85,18 @@ function run(github, context, core) {
     ],
   };
 
-  for (const [language, details] of Object.entries(projects)) {
-    const lang_globs = globs[language];
+  for (const [language, globs] of Object.entries(extra_globs)) {
+    filters[language] ??= [];
+    filters[language].push(...globs);
+  }
 
-    if (!lang_globs) {
-      core.setFailed(`No globs defined for language ${language}`);
-      continue;
-    }
+  for (const [language, lang_data] of Object.entries(projects)) {
+    const lang_globs = globs[language] ?? ["**/*"];
 
-    for (const [project, paths] of Object.entries(details)) {
-      for (const path of paths) {
+    const project_entries = lang_data.projects;
+
+    for (const [project, project_data] of Object.entries(project_entries)) {
+      for (const path of project_data.paths) {
         filters[project] ??= [];
         filters[project].push(...lang_globs.map((glob) => `${path}/${glob}`));
       }
