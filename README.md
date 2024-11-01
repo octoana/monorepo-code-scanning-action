@@ -132,7 +132,7 @@ If you have a monorepo with lots of languages that exist in the same projects yo
 
 Local tests for the scripts this relies on are located in the `tests` folder. They are run with `./run.sh`, vs using a testing framework.
 
-Testing is also done end-to-end using the [`advanced-security/sample-csharp-monorepo`](https://github.com/advanced-security/sample-csharp-monorepo/) repository.
+Testing is also done end-to-end using the private [`advanced-security/sample-csharp-monorepo`](https://github.com/advanced-security/sample-csharp-monorepo/) repository.
 
 ## License
 
