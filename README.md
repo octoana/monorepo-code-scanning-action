@@ -1,6 +1,6 @@
 # Monorepo Code Scanning Action
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 Focus Code Scanning with GitHub Advanced Security on parts of your monorepo, split up as you define. This can minimize CI work and time and allow scanning a monorepo in parallel for scheduled scans.
@@ -9,7 +9,7 @@ For an example of how to use it for PR scans, see the `./samples/sample-codeql-m
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 ## Overview
@@ -144,7 +144,7 @@ See [CODEOWNERS](CODEOWNERS) for the list of maintainers.
 
 ## Support
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 See the [SUPPORT](SUPPORT.md) file.
