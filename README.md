@@ -1,15 +1,15 @@
 # Monorepo Code Scanning Action
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 Focus Code Scanning with GitHub Advanced Security on parts of your monorepo, split up as you define. This can minimize CI work and time and allow scanning a monorepo in parallel for scheduled scans.
 
-For an example of how to use it for PR scans, see the `./samples/sample-codeql-monorepo-pr-workflow.yml` in this repository. For a schedule scan example, see `./samples/sample-codeql-monorepo-whole-repo-workflow.yml`
+For an example of how to use it for PR scans, see the [`./samples/sample-codeql-monorepo-pr-workflow.yml`](./samples/sample-codeql-monorepo-pr-workflow.yml) in this repository. For a scheduled scan example, see [`./samples/sample-codeql-monorepo-whole-repo-workflow.yml`](./samples/sample-codeql-monorepo-whole-repo-workflow.yml)
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 ## Overview
@@ -38,15 +38,15 @@ For other cases you need to create a JSON file that describes that structure, li
 }
 ```
 
-You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build_mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
+You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build-mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
 
 ```json
 {
   "<language>":
-    "build_mode": "none",
+    "build-mode": "none",
     "projects": {
       "<project name>": {
-        "build_mode": "auto",
+        "build-mode": "auto",
         "paths":
           [
             "<folder path 1>",
@@ -100,13 +100,13 @@ You can see an example of this XML format in this repository in `./samples/build
 
 ### Scan
 
-The `scan` Action scans any changed projects using CodeQL, using just the changes to the defined projects.
+The `scan` Action scans any changed projects using CodeQL (or optionally another tool), using just the changes to the defined projects.
 
 A sparse checkout of the project in which changes happened is used to speed up the checkout and target scans at just that project.
 
-The scan can use a custom CodeQL scanning workflow to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/workflows/codeql-custom-analysis.yml` in your repository, and activated using the input `custom-analysis: true`.
+The scan can use a custom code scanning workflow to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/workflows/code-scanning-custom-analysis.yml` in your repository. This is used for the `build-mode` of `manual` or `other`.
 
-You can see an example of this custom workflow in this repository in `./samples/codeql-custom-analysis.yml`.
+You can see an example of this custom workflow in this repository in [`./samples/code-scanning-custom-analysis.yml`](./samples/code-scanning-custom-analysis.yml).
 
 This must have conditional checks to apply the correct build steps for the language and project.
 
@@ -144,7 +144,7 @@ See [CODEOWNERS](CODEOWNERS) for the list of maintainers.
 
 ## Support
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 See the [SUPPORT](SUPPORT.md) file.

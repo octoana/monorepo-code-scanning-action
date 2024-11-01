@@ -42,8 +42,8 @@ function run(github, context, core) {
       })
     );
 
-    if (lang_data.build_mode !== undefined) {
-      projects_to_scan[language]["build_mode"] = lang_data.build_mode;
+    if (lang_data["build-mode"] !== undefined) {
+      projects_to_scan[language]["build-mode"] = lang_data["build-mode"];
     }
   }
 
@@ -59,11 +59,11 @@ function run(github, context, core) {
 
     filtered_languages.add(language);
 
-    const lang_build_mode = lang_data.build_mode;
+    const lang_build_mode = lang_data["build-mode"];
 
     for (const [name, project_data] of Object.entries(lang_data.projects)) {
       const paths = new Set(project_data.paths);
-      let build_mode = project_data.build_mode ?? lang_build_mode;
+      let build_mode = project_data["build-mode"] ?? lang_build_mode;
 
       if (build_mode === undefined) {
         // auto-set build-mode depending on the language
