@@ -114,7 +114,7 @@ This must have conditional checks to apply the correct build steps for the langu
 
 The  `republish-sarif` Action allows the unscanned parts of the project to pass the required CodeQL checks.
 
-The SARIF is reublished, meaning a complete set of Code Scanning results is attached to the PR, copied from the target branch, whether or not the project was changed during the PR.
+The SARIF is republished, meaning a complete set of Code Scanning results is attached to the PR, copied from the target branch, whether or not the project was changed during the PR.
 
 ## Limitations
 
