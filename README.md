@@ -75,7 +75,7 @@ graph TD
 
 ## Using the Action
 
-> [!WARNING]
+> [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that sample workflow, altering the inputs as required.
