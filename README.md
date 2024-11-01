@@ -5,7 +5,7 @@
 
 Focus Code Scanning with GitHub Advanced Security on parts of your monorepo, split up as you define. This can minimize CI work and time and allow scanning a monorepo in parallel for scheduled scans.
 
-For an example of how to use it for PR scans, see the `./samples/sample-codeql-monorepo-pr-workflow.yml` in this repository. For a schedule scan example, see `./samples/sample-codeql-monorepo-whole-repo-workflow.yml`
+For an example of how to use it for PR scans, see the [`./samples/sample-codeql-monorepo-pr-workflow.yml`](./samples/sample-codeql-monorepo-pr-workflow.yml) in this repository. For a scheduled scan example, see [`./samples/sample-codeql-monorepo-whole-repo-workflow.yml`](./samples/sample-codeql-monorepo-whole-repo-workflow.yml)
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
@@ -106,7 +106,7 @@ A sparse checkout of the project in which changes happened is used to speed up t
 
 The scan can use a custom code scanning workflow to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/workflows/code-scanning-custom-analysis.yml` in your repository. This is used for the `build-mode` of `manual` or `other`.
 
-You can see an example of this custom workflow in this repository in `./samples/code-scanning-custom-analysis.yml`.
+You can see an example of this custom workflow in this repository in [`./samples/code-scanning-custom-analysis.yml`](./samples/code-scanning-custom-analysis.yml).
 
 This must have conditional checks to apply the correct build steps for the language and project.
 
