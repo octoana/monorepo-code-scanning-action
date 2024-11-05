@@ -32,13 +32,14 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - if: ${{ inputs.build-xml != '' || inputs.projects-json != '' }}
-      name: Checkout project definition files
+    - if: ${{ inputs.build-xml != '' || inputs.projects-json != '' || inputs.config-file != '' }}
+      name: Checkout project definition files and/or CodeQL config file
       uses: actions/checkout@v4
       with:
         sparse-checkout: |
           ${{ inputs.build-xml }}
           ${{ inputs.projects-json }}
+          ${{ inputs.config-file }}
         sparse-checkout-cone-mode: false
 
     - name: Install Node.js
@@ -132,6 +133,8 @@ runs:
         filters: ${{ toJson(steps.filter.outputs) }}
         projects: ${{ steps.read-projects.outputs.result || steps.build-projects.outputs.projects }}
         queries: ${{ inputs.queries }}
+        config_file: ${{ inputs.config-file }}
+        config: ${{ inputs.config }}
       with:
         script: |
           const path = require('node:path')

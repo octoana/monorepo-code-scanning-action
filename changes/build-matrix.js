@@ -7,22 +7,27 @@ function run(github, context, core) {
   const other_err = 'setting as "other", which requires a fully manual scan with no automatic CodeQL analysis';
 
   const raw_filters = process.env.filters;
-
-  let projects_to_scan = {};
-
   const raw_projects = process.env.projects;
+  const raw_queries = process.env.queries;
+  const raw_config = process.env.config;
+  const config_file = process.env.config_file;
 
   if (!raw_projects) {
     core.setFailed("projects is required");
     return;
   }
 
-  const raw_queries = process.env.queries;
-
   const projects = JSON.parse(raw_projects);
   const filters = (raw_filters !== undefined && raw_filters !== "") ? JSON.parse(raw_filters) : undefined;
   const changes = filters !== undefined ? JSON.parse(filters.changes) : [];
   const queries = raw_queries !== "" ? raw_queries.split(",") : ["code-scanning"];
+  const global_config = raw_config !== "" ? yaml.parse(raw_config) : {};
+
+  if (config_file !== "") {
+    const config_file_content = fs.readFileSync(config_file, "utf8");
+    const config_file_yaml = yaml.parse(config_file_content);
+    Object.assign(global_config, config_file_yaml);
+  }
 
   core.debug("Changes:");
   core.debug(JSON.stringify(changes));
@@ -30,6 +35,8 @@ function run(github, context, core) {
   core.debug(JSON.stringify(projects));
 
   core.debug(Object.entries(projects));
+
+  let projects_to_scan = {};
 
   // Filter out projects that don't have changes
   for (const [language, lang_data] of Object.entries(projects)) {
@@ -89,16 +96,21 @@ function run(github, context, core) {
         }
       }
 
-      const codeql_config = yaml.stringify({
+      const project_config = global_config;
+      project_config.assign({
         paths: Array.from(project_paths),
         queries: Array.from(project_queries).map((query) => {uses: query}),
       });
+      
+      const codeql_config_yaml = yaml.stringify(project_config);
+
+      const sparse_checkout_str = Array.from(paths).join("\n");
 
       const project = {
         name: name,
         paths: Array.from(paths),
-        sparse_checkout: Array.from(paths).join("\n"),
-        codeql_config: codeql_config,
+        sparse_checkout: sparse_checkout_str,
+        codeql_config: codeql_config_yaml,
         language: language,
         build_mode: build_mode,
       };
