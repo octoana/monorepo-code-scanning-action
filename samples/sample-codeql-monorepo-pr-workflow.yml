@@ -31,10 +31,10 @@ on:
   pull_request:
     branches: ["main"]
     types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
+      - opened      # scan new PRs
+      - reopened    # scan PRs that are reopened
+      - synchronize # scan newly pushed commits to PRs
+      - closed      # republish results from merged PRs
 
 jobs:
   changes:
@@ -64,9 +64,28 @@ jobs:
           # This takes the form:
           # {
           #    "csharp": {
-          #      "projectName": ["FolderA", "FolderB"]
+          #      "projects": {
+          #         "<projectName": {
+          #           "paths": ["FolderA", "FolderB"]
+          #         }
+          #      }
           #    }
           # }
+          #
+          # At the language or project you can also set `build-mode` and `queries` keys to override the defaults.
+
+          # In either case you can also set a config or config-file key to specify a global CodeQL config to use for the analysis.
+          #
+          # config-file: .github/codeql-config.yml
+          # config: |
+          #   queries:
+          #     - my-custom-query
+
+          # You can also specify extra globs to include in the scan, by language, in YAML format.
+          # extra-globs: |
+          #   python:
+          #     - *.py
+          #     - requirements-dev.txt
 
   scan:
     if: needs.changes.outputs.scan-required == 'true'

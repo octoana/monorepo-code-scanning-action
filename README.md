@@ -38,29 +38,9 @@ For other cases you need to create a JSON file that describes that structure, li
 }
 ```
 
-You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build-mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
+In the description of the `changes` Action you can see more optional keys that can be set at language or project level.
 
-```json
-{
-  "<language>":
-    "build-mode": "none",
-    "projects": {
-      "<project name>": {
-        "build-mode": "auto",
-        "paths":
-          [
-            "<folder path 1>",
-            "<folder path 2>",
-            ...
-          ]
-      },
-    ...
-  },
-  ...
-}
-```
-
-This then lets a workflow use the `changes` Action to look for changes in the defined project structure; the `scan` Action then scans any changed projects using CodeQL; and lastly `republish-sarif` to allow the unscanned parts of the project to pass the required CodeQL checks by republishing the SARIF.
+This project definition lets a workflow use the `changes` Action to look for changes in the defined project structure; the `scan` Action then scans any changed projects using CodeQL (or another tool); and lastly `republish-sarif` allows the unscanned parts of the project to pass the required CodeQL checks by republishing the SARIF.
 
 ```mermaid
 graph TD
@@ -92,11 +72,68 @@ You may wish to bypass this rule occasionally, so remember to allow for that app
 
 The `changes` Action looks for changes in your defined project structure.
 
-That structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of a C# build XML file in the `build-xml` input.
+It also sets the CodeQL configuration to use for the rest of the workflow.
 
-When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary.
+#### Setting project structure
 
-You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
+The project structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of a C# build XML file in the `build-xml` input.
+
+When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary. You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
+
+In the JSON version, you can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build-mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
+
+You can also optionally specify a set of CodeQL queries to use with the `queries` key, again either at language or project level. This is a list of inputs valid for the `queries` input of the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries).
+
+If you do not want to specify `queries` in this way you can also set a global `queries` input to the Action - see below.
+
+An example of a JSON file using a `queries` and `build-mode` key is:
+
+```json
+{
+  "<language>":
+    "build-mode": "none",
+    "queries": [
+      "security-extended",
+      "./local/path/to/a/query.qls",
+    ]
+    "projects": {
+      "<project name>": {
+        "build-mode": "auto",
+        "paths":
+          [
+            "<folder path 1>",
+            "<folder path 2>",
+            ...
+          ]
+      },
+    ...
+  },
+  ...
+}
+```
+
+#### Setting custom language globs
+
+The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
+
+You can add to that with `extra-globs` input to the `changes` Action, which takes an inline YAML input, of the form:
+
+```yaml
+<language>:
+  - <glob1>
+  - <glob2>
+  ...
+```
+
+#### Configuring CodeQL
+
+In addition to settings the `queries` key at the language or project level, you can also set it globally.
+
+If you pass a global `queries` input, as a comma separated list of strings, it allows setting the queries to use for all languages and projects. They use the same format as the `queries` input for the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries), comma separated just as in that case.
+
+Similarly, you can pass in a global `config` or `config-file` input, which use the same format as  [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#using-a-custom-configuration-file) and [here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-configuration-details-using-the-config-input). This cannot currently be set at the language or project level, only globally.
+
+The effective config used is a combination of the inputs created from the paths of the project, and any queries set in the separate `queries` input to this Action, overlaid with the content of the `config` or `config-file` inputs.
 
 ### Scan
 
@@ -116,15 +153,25 @@ The  `republish-sarif` Action allows the unscanned parts of the project to pass 
 
 The SARIF is republished, meaning a complete set of Code Scanning results is attached to the PR, copied from the target branch, whether or not the project was changed during the PR.
 
-## Limitations
+It will also republish the scanning results onto the target branch, on merge. This saves running a full repo scan on the target branch.
 
-This tool is currently designed to split up scanning of a monorepo with CodeQL only. It is not designed to work with other scanning tools, but could be adapted to do so.
+To allow this, you need to give the workflow the `closed` type on the `pull_request` trigger to be able run on PR merge, as shown in the sample workflow, and here:
+
+```yaml
+  pull_request:
+    branches: ["main"]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+```
+
+## Limitations
 
 The custom CodeQL analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
 
 This tool cannot help with a monolith that cannot be split up into smaller projects.
-
-The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. They are a fixed set of globs defined in `changes/build-filters.js`. If you need to change these to correctly spot changes, you will need to raise a PR to this repository. This is not currently extensible.
 
 If you have a monorepo with lots of languages that exist in the same projects you will need to duplicate that project structure multiple times for each affected language. A future option could take a single named project with several paths and languages - raise an issue if that would be helpful, please.
 
