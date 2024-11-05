@@ -20,7 +20,7 @@ function run(github, context, core) {
   const projects = JSON.parse(raw_projects);
   const filters = (raw_filters !== undefined && raw_filters !== "") ? JSON.parse(raw_filters) : undefined;
   const changes = filters !== undefined ? JSON.parse(filters.changes) : [];
-  const queries = raw_queries !== "" ? raw_queries.split(",") : ["code-scanning"];
+  const queries = raw_queries !== "" ? raw_queries.split(",") : null;
   const global_config = raw_config !== "" ? yaml.parse(raw_config) : {};
 
   if (config_file !== "") {
@@ -98,9 +98,12 @@ function run(github, context, core) {
 
       let project_config = global_config;
       Object.assign(project_config, {
-        paths: Array.from(project_paths),
-        queries: Array.from(project_queries).map((query) => { return {uses: query} }),
+        paths: Array.from(project_paths)
       });
+
+      if (project_queries !== null && project_queries.size > 0) {
+        project_config.queries = Array.from(project_queries).map((query) => { return {uses: query} })
+      }
       
       const codeql_config_yaml = yaml.stringify(project_config);
 
