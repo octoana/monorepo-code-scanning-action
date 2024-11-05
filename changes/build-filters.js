@@ -19,6 +19,14 @@ function run(github, context, core) {
 
   const filters = {};
 
+  const aliases = {
+    "java": "java-kotlin",
+    "javascript": "javascript-typescript",
+    "typescript": "javascript-typescript",
+    "c": "c-cpp",
+    "cpp": "c-cpp",
+  };
+
   // which filenames to include in the analysis if they are changed, per language
   // this is configurable (adding new globs) using an Action input
   const globs = {
@@ -45,7 +53,6 @@ function run(github, context, core) {
       "**/setup.cfg",
     ],
     go: ["**/*.go", "**/go.mod", "**/go.sum"],
-    java: ["**/*.java", "**/*.gradle", "gradle.*", "**/*.kt", "**/*.jar"],
     "java-kotlin": [
       "**/*.java",
       "**/*.gradle",
@@ -55,20 +62,33 @@ function run(github, context, core) {
     ],
     "javascript-typescript": [
       "**/*.js",
-      "**/*.ts",
       "**/*.jsx",
+      "**/*.mjs",
+      "**/*.es",
+      "**/*.es6",
+      "**/*.ts",
       "**/*.tsx",
+      "**/*.mts",
+      "**/*.cts",
+      "**/*.htm",
+      "**/*.html",
+      "**/*.xhtm",
+      "**/*.xhtml",
+      "**/*.vue",
+      "**/*.hbs",
+      "**/*.ejs",
+      "**/*.njk",
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.raml",
+      "**/*.xml",
+
       "**/package.json",
       "**/yarn.lock",
       "**/package-lock.json",
     ],
-    javascript: [
-      "**/*.js",
-      "**/package.json",
-      "**/yarn.lock",
-      "**/package-lock.json",
-    ],
-    ruby: ["**/*.rb", "**/Gemfile", "**/Gemfile.lock"],
+    ruby: ["**/*.rb", "**/*.erb", "**/Gemfile", "**/Gemfile.lock", "**/*.gemspec"],
     swift: ["**/*.swift"],
     "c-cpp": [
       "**/*.c",
@@ -82,16 +102,21 @@ function run(github, context, core) {
       "**/*.c++",
       "**/*.h++",
       "**/*.inl",
+      "**/*.pch",
+      "**/*.gch",
     ],
   };
 
   for (const [language, globs] of Object.entries(extra_globs)) {
-    filters[language] ??= [];
-    filters[language].push(...globs);
+    const resolved_language = aliases[language] ?? language;
+    filters[resolved_language] ??= [];
+    filters[resolved_language].push(...globs);
   }
 
   for (const [language, lang_data] of Object.entries(projects)) {
-    const lang_globs = globs[language] ?? ["**/*"];
+    const resolved_language = aliases[language] ?? language;
+
+    const lang_globs = globs[resolved_language] ?? ["**/*"];
 
     const project_entries = lang_data.projects;
 
