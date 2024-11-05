@@ -21,6 +21,7 @@ function run(github, context, core) {
       "*.sln",
       "*.config",
       "*.xml",
+      "*.props"
     ],
     "c-cpp": [
       "configure",
