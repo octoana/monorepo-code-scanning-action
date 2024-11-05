@@ -16,6 +16,12 @@ inputs:
   queries:
     description: 'List of queries to run, comma separated (optional). Defaults to "code-scanning", or overriden by the "queries" input in the project definition'
     required: false
+  config-file:
+    description: 'Path to CodeQL config to use (optional)'
+    required: false
+  config:
+    description: 'Inline CodeQL config YAML (optional)'
+    required: false
 outputs:
   projects:
     description: Matrix of the projects to analyze
@@ -79,6 +85,7 @@ runs:
           return script(github, context, core)
 
     - name: Debug build projects
+      if: ${{ runner.debug == '1' }}
       run: echo "${result}"
       shell: bash
       env:
@@ -99,6 +106,7 @@ runs:
           return script(github, context, core)
 
     - name: Debug build filters
+      if: ${{ runner.debug == '1' }}
       run: echo "${result}"
       shell: bash
       env:
@@ -111,6 +119,7 @@ runs:
         filters: ${{ steps.build-filters.outputs.result }}
 
     - name: Debug filter result
+      if: ${{ runner.debug == '1' }}
       run: echo "${result}"
       shell: bash
       env:
@@ -129,3 +138,10 @@ runs:
           const action_path = process.env.GITHUB_ACTION_PATH
           const script = require(path.join(action_path, 'build-matrix.js'))
           return script(github, context, core)
+
+    - name: Debug matrix result
+      if: ${{ runner.debug == '1' }}
+      run: echo "${result}"
+      shell: bash
+      env:
+        result: ${{ toJson(steps.build-matrix.outputs) }}
