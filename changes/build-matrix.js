@@ -75,7 +75,7 @@ function run(github, context, core) {
     const lang_queries = lang_data.queries;
 
     for (const [name, project_data] of Object.entries(lang_data.projects)) {
-      const paths = new Set(project_data.paths);
+      const project_paths = new Set(project_data.paths);
       let build_mode = project_data["build-mode"] ?? lang_build_mode;
       const project_queries = new Set(project_data.queries ?? lang_queries ?? queries);
 
