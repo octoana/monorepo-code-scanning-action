@@ -13,6 +13,9 @@ inputs:
   extra-globs:
     description: 'Extra globs to include in the scan in JSON format, by language (optional)'
     required: false
+  queries:
+    description: 'List of queries to run, comma separated (optional). Defaults to "code-scanning", or overriden by the "queries" input in the project definition'
+    required: false
 outputs:
   projects:
     description: Matrix of the projects to analyze
@@ -119,6 +122,7 @@ runs:
       env:
         filters: ${{ toJson(steps.filter.outputs) }}
         projects: ${{ steps.read-projects.outputs.result || steps.build-projects.outputs.projects }}
+        queries: ${{ inputs.queries }}
       with:
         script: |
           const path = require('node:path')

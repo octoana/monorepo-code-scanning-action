@@ -1,3 +1,5 @@
+const yaml = require("yaml");
+
 function run(github, context, core) {
   const build_mode_none_languages = new Set(["csharp", "java", "python", "javascript-typescript", "ruby"]);
   const auto_build_languages = new Set(["go", "java-kotlin", "cpp", "swift"]);
@@ -15,9 +17,12 @@ function run(github, context, core) {
     return;
   }
 
+  const raw_queries = process.env.queries;
+
   const projects = JSON.parse(raw_projects);
   const filters = (raw_filters !== undefined && raw_filters !== "") ? JSON.parse(raw_filters) : undefined;
   const changes = filters !== undefined ? JSON.parse(filters.changes) : [];
+  const queries = raw_queries !== "" ? raw_queries.split(",") : ["code-scanning"];
 
   core.debug("Changes:");
   core.debug(JSON.stringify(changes));
@@ -60,10 +65,12 @@ function run(github, context, core) {
     filtered_languages.add(language);
 
     const lang_build_mode = lang_data["build-mode"];
+    const lang_queries = lang_data.queries;
 
     for (const [name, project_data] of Object.entries(lang_data.projects)) {
       const paths = new Set(project_data.paths);
       let build_mode = project_data["build-mode"] ?? lang_build_mode;
+      const project_queries = new Set(project_data.queries ?? lang_queries ?? queries);
 
       if (build_mode === undefined) {
         // auto-set build-mode depending on the language
@@ -82,11 +89,16 @@ function run(github, context, core) {
         }
       }
 
+      const codeql_config = yaml.stringify({
+        paths: Array.from(project_paths),
+        queries: Array.from(project_queries).map((query) => {uses: query}),
+      });
+
       const project = {
         name: name,
         paths: Array.from(paths),
         sparse_checkout: Array.from(paths).join("\n"),
-        codeql_config: "paths:\n  - " + Array.from(paths).join("\n  - "),
+        codeql_config: codeql_config,
         language: language,
         build_mode: build_mode,
       };

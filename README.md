@@ -40,10 +40,16 @@ For other cases you need to create a JSON file that describes that structure, li
 
 You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build-mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
 
+You can also optionally specify a set of CodeQL queries to use with the `queries` key, again either at language or project level. This is a list of inputs valid for the `queries` input of the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries).
+
 ```json
 {
   "<language>":
     "build-mode": "none",
+    "queries": [
+      "security-extended",
+      "./local/path/to/a/query.qls",
+    ]
     "projects": {
       "<project name>": {
         "build-mode": "auto",
@@ -60,7 +66,7 @@ You can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manu
 }
 ```
 
-This then lets a workflow use the `changes` Action to look for changes in the defined project structure; the `scan` Action then scans any changed projects using CodeQL; and lastly `republish-sarif` to allow the unscanned parts of the project to pass the required CodeQL checks by republishing the SARIF.
+This project definition lets a workflow use the `changes` Action to look for changes in the defined project structure; the `scan` Action then scans any changed projects using CodeQL (or another tool); and lastly `republish-sarif` allows the unscanned parts of the project to pass the required CodeQL checks by republishing the SARIF.
 
 ```mermaid
 graph TD
@@ -97,6 +103,8 @@ That structure can either be defined in a JSON file and provided by name in the 
 When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary.
 
 You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
+
+You can also pass a global `queries` input, as a comma separated list of strings, to allow setting the queries to use for all languages and projects. They use the same format as the `queries` input for the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries), comma separated just as in that case.
 
 ### Scan
 
