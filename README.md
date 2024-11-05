@@ -112,6 +112,8 @@ An example of a JSON file using a `queries` and `build-mode` key is:
 }
 ```
 
+If you dynamically generate the project file, then it is best to save it outside of the Actions workspace where the repository will be checked out, since a checkout may overwrite it. A good location would be in `$RUNNER_TEMP`.
+
 #### Setting custom language globs
 
 The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
