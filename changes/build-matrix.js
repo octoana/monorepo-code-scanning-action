@@ -99,7 +99,7 @@ function run(github, context, core) {
       let project_config = global_config;
       Object.assign(project_config, {
         paths: Array.from(project_paths),
-        queries: Array.from(project_queries).map((query) => {uses: query}),
+        queries: Array.from(project_queries).map((query) => { return {uses: query} }),
       });
       
       const codeql_config_yaml = yaml.stringify(project_config);
