@@ -96,8 +96,8 @@ function run(github, context, core) {
         }
       }
 
-      const project_config = global_config;
-      project_config.assign({
+      let project_config = global_config;
+      Object.assign(project_config, {
         paths: Array.from(project_paths),
         queries: Array.from(project_queries).map((query) => {uses: query}),
       });
