@@ -15,7 +15,7 @@ function run(github, context, core) {
   core.debug(typeof projects);
   core.debug(Object.entries(projects));
 
-  const extra_globs = raw_extra_globs != "" ? JSON.parse(raw_extra_globs) : {};
+  const extra_globs = raw_extra_globs != "" ? yaml.parse(raw_extra_globs) : {};
 
   const filters = {};
 

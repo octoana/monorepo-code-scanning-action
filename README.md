@@ -112,6 +112,19 @@ An example of a JSON file using a `queries` and `build-mode` key is:
 }
 ```
 
+#### Setting custom language globs
+
+The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
+
+You can add to that with `extra-globs` input to the `changes` Action, which takes an inline YAML input, of the form:
+
+```yaml
+<language>:
+  - <glob1>
+  - <glob2>
+  ...
+```
+
 #### Configuring CodeQL
 
 In addition to settings the `queries` key at the language or project level, you can also set it globally.
@@ -140,15 +153,25 @@ The  `republish-sarif` Action allows the unscanned parts of the project to pass 
 
 The SARIF is republished, meaning a complete set of Code Scanning results is attached to the PR, copied from the target branch, whether or not the project was changed during the PR.
 
-## Limitations
+It will also republish the scanning results onto the target branch, on merge. This saves running a full repo scan on the target branch.
 
-This tool is currently designed to split up scanning of a monorepo with CodeQL only. It is not designed to work with other scanning tools, but could be adapted to do so.
+To allow this, you need to give the workflow the `closed` type on the `pull_request` trigger to be able run on PR merge, as shown in the sample workflow, and here:
+
+```yaml
+  pull_request:
+    branches: ["main"]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+```
+
+## Limitations
 
 The custom CodeQL analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
 
 This tool cannot help with a monolith that cannot be split up into smaller projects.
-
-The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. They are a fixed set of globs defined in `changes/build-filters.js`. If you need to change these to correctly spot changes, you will need to raise a PR to this repository. This is not currently extensible.
 
 If you have a monorepo with lots of languages that exist in the same projects you will need to duplicate that project structure multiple times for each affected language. A future option could take a single named project with several paths and languages - raise an issue if that would be helpful, please.
 
