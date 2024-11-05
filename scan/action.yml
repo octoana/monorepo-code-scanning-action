@@ -8,8 +8,9 @@ runs:
       uses: actions/checkout@v4
       with:
         sparse-checkout: ${{ matrix.project.sparse_checkout }}
+        sparse-checkout-cone-mode: false
 
-    # Initializes the CodeQL tools for scanning
+    # Initializes CodeQL for scanning, if required
     - name: Initialize CodeQL (build mode none/auto)
       if: matrix.project.build_mode == 'none' || matrix.project.build_mode == 'auto'
       uses: github/codeql-action/init@v3
@@ -18,6 +19,8 @@ runs:
         build-mode: ${{ matrix.project.build_mode }}
         config: ${{  matrix.project.codeql_config }}
 
+    # Build the project, manually, if required
+    # Scanning with CodeQL and uploading the SARIF will be handled by the last step, below
     - name: Initialize CodeQL and build (manual)
       if: matrix.project.build_mode == 'manual'
       uses: ./.github/workflows/code-scanning-custom-analysis.yml
@@ -26,6 +29,8 @@ runs:
         codeql-config: ${{  matrix.project.codeql_config }}
         name: ${{  matrix.project.name }}
 
+    # Scan the project, if we have a non-CodeQL build
+    # This will require a SARIF upload step in the custom analysis workflow
     - name: Scan project (non CodeQL)
       if: matrix.project.build_mode == 'other'
       uses: ./.github/workflows/code-scanning-custom-analysis.yml
@@ -33,7 +38,10 @@ runs:
         language: ${{  matrix.project.language }}
         name: ${{  matrix.project.name }}
 
+    # Perform the CodeQL analysis, if we have a CodeQL build
+    # This will upload the SARIF for you
     - name: Perform CodeQL Analysis
+      id: codeql-analyze
       if: matrix.project.build_mode != 'other'
       uses: github/codeql-action/analyze@v3
       with:

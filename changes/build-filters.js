@@ -20,11 +20,12 @@ function run(github, context, core) {
   const filters = {};
 
   const aliases = {
-    "java": "java-kotlin",
-    "javascript": "javascript-typescript",
-    "typescript": "javascript-typescript",
-    "c": "c-cpp",
-    "cpp": "c-cpp",
+    java: "java-kotlin",
+    kotlin: "java-kotlin",
+    javascript: "javascript-typescript",
+    typescript: "javascript-typescript",
+    c: "c-cpp",
+    cpp: "c-cpp",
   };
 
   // which filenames to include in the analysis if they are changed, per language
@@ -59,6 +60,7 @@ function run(github, context, core) {
       "**/*.kt",
       "**/*.kts",
       "**/*.jar",
+      "**/pom.xml",
     ],
     "javascript-typescript": [
       "**/*.js",
@@ -78,17 +80,23 @@ function run(github, context, core) {
       "**/*.hbs",
       "**/*.ejs",
       "**/*.njk",
+      "**/package.json",
+      "**/yarn.lock",
+      "**/package-lock.json",
+      "**/pnpm-lock.yaml",
       "**/*.json",
       "**/*.yaml",
       "**/*.yml",
       "**/*.raml",
       "**/*.xml",
-
-      "**/package.json",
-      "**/yarn.lock",
-      "**/package-lock.json",
     ],
-    ruby: ["**/*.rb", "**/*.erb", "**/Gemfile", "**/Gemfile.lock", "**/*.gemspec"],
+    ruby: [
+      "**/*.rb",
+      "**/*.erb",
+      "**/Gemfile",
+      "**/Gemfile.lock",
+      "**/*.gemspec",
+    ],
     swift: ["**/*.swift"],
     "c-cpp": [
       "**/*.c",
@@ -104,6 +112,23 @@ function run(github, context, core) {
       "**/*.inl",
       "**/*.pch",
       "**/*.gch",
+      "**/configure",
+      "**/configure.ac",
+      "**/configure.in",
+      "**/Makefile",
+      "**/makefile",
+      "**/Makefile.am",
+      "**/makefile.am",
+      "**/Makefile.in",
+      "**/makefile.in",
+      "**/CMakeLists.txt",
+      "**/meson.build",
+      "**/meson_options.txt",
+      "**/BUILD.bazel",
+      "**/BUILD",
+      "**/.buckconfig",
+      "**/BUCK",
+      "**/*.ninja",
     ],
   };
 
@@ -123,8 +148,21 @@ function run(github, context, core) {
     for (const [project, project_data] of Object.entries(project_entries)) {
       for (const path of project_data.paths) {
         filters[project] ??= [];
-        filters[project].push(...lang_globs.map((glob) => `${path}/${glob}`));
+        const paths_with_globs = lang_globs.map((glob) => `${path}/${glob}`);
+        filters[project].push(...paths_with_globs);
       }
+
+      /*
+       * we intentionally don't add the top-level files defined in `build-matrix.js` to the filters,
+       * nor the individual files for each project in `project_data.files`
+       * 
+       * This is because these are likely to be shared files that are included in multiple projects,
+       * and we don't want to force a re-scan of all projects if a single shared file is changed
+       * in a way that affects only one project.
+       * 
+       * In contrast, we do want to force a re-scan of all projects if a shared *path* is changed,
+       * as that is more likely to affect the results of analysis of each project.
+       */
     }
   }
 

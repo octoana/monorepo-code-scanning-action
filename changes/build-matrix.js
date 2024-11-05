@@ -6,6 +6,40 @@ function run(github, context, core) {
   const allowed_build_modes = new Set(["auto", "none", "manual", "other"]);
   const other_err = 'setting as "other", which requires a fully manual scan with no automatic CodeQL analysis';
 
+  const top_level_files = {
+    "java-kotlin": [
+      "pom.xml",
+      "build.gradle",
+      "build.gradle.kts",
+      "settings.gradle",
+      "settings.gradle.kts",
+      "gradle.properties",
+      "gradlew",
+      "gradlew.bat",
+    ],
+    "csharp": [
+      "*.sln",
+      "*.config",
+      "*.xml",
+    ],
+    "c-cpp": [
+      "configure",
+      "Makefile",
+      "makefile",
+      "*.ac",
+      "*.in",
+      "*.am",
+      "CMakeLists.txt",
+      "meson.build",
+      "meson_options.txt",
+      "BUILD.bazel",
+      "BUILD",
+      ".buckconfig",
+      "BUCK",
+      "*.ninja",
+    ],
+  };
+
   const raw_filters = process.env.filters;
   const raw_projects = process.env.projects;
   const raw_queries = process.env.queries;
@@ -76,6 +110,17 @@ function run(github, context, core) {
 
     for (const [name, project_data] of Object.entries(lang_data.projects)) {
       const project_paths = new Set(project_data.paths);
+
+      // add any individual files to the list of paths to scan
+      if (project_data.files !== undefined) {
+        project_paths.add(...project_data.files);
+      }
+
+      // add the top-level files to the list of paths to scan
+      if (top_level_files[language] !== undefined) {
+        project_paths.add(...top_level_files[language]);
+      }
+
       let build_mode = project_data["build-mode"] ?? lang_build_mode;
       const project_queries = new Set(project_data.queries ?? lang_queries ?? queries);
 
