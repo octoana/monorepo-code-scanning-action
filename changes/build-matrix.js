@@ -104,11 +104,11 @@ function run(github, context, core) {
       
       const codeql_config_yaml = yaml.stringify(project_config);
 
-      const sparse_checkout_str = Array.from(paths).join("\n");
+      const sparse_checkout_str = Array.from(project_paths).join("\n");
 
       const project = {
         name: name,
-        paths: Array.from(paths),
+        paths: Array.from(project_paths),
         sparse_checkout: sparse_checkout_str,
         codeql_config: codeql_config_yaml,
         language: language,
