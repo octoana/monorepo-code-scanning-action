@@ -78,15 +78,26 @@ It also sets the CodeQL configuration to use for the rest of the workflow.
 
 The project structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of a C# build XML file in the `build-xml` input.
 
+It has several purposes - it defines the paths that are watched for changes, and checked out, and also defines CodeQL configuration options.
+
 When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary. You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
 
+> [!NOTE]
+> Do not use `./` to lead path or file names
+
+The basic required structure has a top-level key for each language, named as CodeQL does (or with an arbitrary name for non-CodeQL languages). Each language has a `projects` key, and under that each project is a named key that contains `paths`, which is a list of folder names (without a leading `./` - e.g. `src/FolderA`).
+
 In the JSON version, you can optionally specify the build-mode for CodeQL, as `none`, `auto` or `manual` to select that mode, or use `other` to allow scanning with a different code scanning tool than CodeQL. That can be done at language or project level by supplying a `build-mode` key at the appropriate level. A suitable build-mode is defaulted if you do not provide one, and if you use one at the project level it overrides any set at the language level.
+
+You can also include individual files using a `files` key in the project. These files are _not watched_ for changes, but will be included in the sparse checkout along with the folders in the `paths` key. This is to prevent triggering a scan of every project if a top-level build file is changed. If it is necessary, a full-rescan of the repository can be triggered manually at any time using a full-repo workflow. Again, do not use `./` to lead file names.
+
+The `paths` and `files` lists are evaluated by two different engines - one is the `dorny/paths-filter` Action, and the other is the `actions/checkout` Action. The former uses [picomatch](https://github.com/micromatch/picomatch) and the latter uses the [gitignore](https://git-scm.com/docs/gitignore)-style matching and the, so wildcards can be used, but their exact behaviour may differ slightly - it is best to use exact paths where possible.
 
 You can also optionally specify a set of CodeQL queries to use with the `queries` key, again either at language or project level. This is a list of inputs valid for the `queries` input of the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries).
 
 If you do not want to specify `queries` in this way you can also set a global `queries` input to the Action - see below.
 
-An example of a JSON file using a `queries` and `build-mode` key is:
+An example of a JSON file using a `queries`, `build-mode` and `files` keys is:
 
 ```json
 {
@@ -99,12 +110,16 @@ An example of a JSON file using a `queries` and `build-mode` key is:
     "projects": {
       "<project name>": {
         "build-mode": "auto",
-        "paths":
-          [
-            "<folder path 1>",
-            "<folder path 2>",
-            ...
-          ]
+        "paths": [
+          "<folder path 1>",
+          "<folder path 2>",
+          ...
+        ],
+        "files": [
+          "<file 1>",
+          "<file 2>",
+          ...
+        ]
       },
     ...
   },
@@ -112,11 +127,11 @@ An example of a JSON file using a `queries` and `build-mode` key is:
 }
 ```
 
-If you dynamically generate the project file, then it is best to save it outside of the Actions workspace where the repository will be checked out, since a checkout may overwrite it. A good location would be in `$RUNNER_TEMP`.
+If you dynamically generate the project JSON file, then it is best to save it outside of the Actions workspace, such as in `$RUNNER_TEMP`, since a checkout may overwrite it.
 
 #### Setting custom language globs
 
-The files checked for changes in the project paths are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
+The files checked for changes in the project `paths` are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
 
 You can add to that with `extra-globs` input to the `changes` Action, which takes an inline YAML input, of the form:
 
@@ -133,7 +148,7 @@ In addition to settings the `queries` key at the language or project level, you 
 
 If you pass a global `queries` input, as a comma separated list of strings, it allows setting the queries to use for all languages and projects. They use the same format as the `queries` input for the `codeql/init` step, as [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-additional-queries), comma separated just as in that case.
 
-Similarly, you can pass in a global `config` or `config-file` input, which use the same format as  [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#using-a-custom-configuration-file) and [here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-configuration-details-using-the-config-input). This cannot currently be set at the language or project level, only globally.
+Similarly, you can pass in a global `config` or `config-file` input, which use the same format as  [documented here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#using-a-custom-configuration-file) and [here](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#specifying-configuration-details-using-the-config-input). This _cannot_ currently be set at the language or project level, only globally.
 
 The effective config used is a combination of the inputs created from the paths of the project, and any queries set in the separate `queries` input to this Action, overlaid with the content of the `config` or `config-file` inputs.
 
