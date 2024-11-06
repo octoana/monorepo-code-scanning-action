@@ -55,10 +55,10 @@ function run(github, context, core) {
   const projects = JSON.parse(raw_projects);
   const filters = (raw_filters !== undefined && raw_filters !== "") ? JSON.parse(raw_filters) : undefined;
   const changes = filters !== undefined ? JSON.parse(filters.changes) : [];
-  const queries = raw_queries !== "" ? raw_queries.split(",") : null;
-  const global_config = raw_config !== "" ? yaml.parse(raw_config) : {};
+  const queries = (raw_queries !== undefined && raw_queries !== "") ? raw_queries.split(",") : null;
+  const global_config = (raw_config !== undefined && raw_config !== "") ? yaml.parse(raw_config) : {};
 
-  if (config_file !== "") {
+  if (config_file !== undefined && config_file !== "") {
     const config_file_content = fs.readFileSync(config_file, "utf8");
     const config_file_yaml = yaml.parse(config_file_content);
     Object.assign(global_config, config_file_yaml);
