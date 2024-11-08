@@ -10,6 +10,15 @@ inputs:
   projects-json:
     description: 'Path to the JSON file that defines the projects to build (optional)'
     required: false
+  queries:
+    description: 'List of queries to run, comma separated (optional). Defaults to "code-scanning", or overriden by the "queries" input in the project definition'
+    required: false
+  config-file:
+    description: 'Path to CodeQL config to use (optional)'
+    required: false
+  config:
+    description: 'Inline CodeQL config YAML (optional)'
+    required: false
 outputs:
   projects:
     description: Matrix of the projects to analyze
@@ -17,36 +26,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Build sparse checkout
-      id: build-sparse-checkout
-      env:
-        BUILD_XML: ${{ inputs.build-xml }}
-        PROJECTS_JSON: ${{ inputs.projects-json }}
-      run: |
-        SPARSE_CHECKOUT=""
-        if [ -n "$BUILD_XML" ]; then
-          echo "::notice::Building sparse checkout from $BUILD_XML"
-          SPARSE_CHECKOUT+="${BUILD_XML}\n"
-          SPARSE_CHECKOUT+="changes/build-projects-from-xml.js\n"
-        elif [ -n "$PROJECTS_JSON" ]; then
-          echo "::notice::Building sparse checkout from $PROJECTS_JSON"
-          SPARSE_CHECKOUT+="${PROJECTS_JSON}\n"
-        else
-          echo "::error::No project structure file provided"
-          exit 1
-        fi
-        SPARSE_CHECKOUT+="changes/build-matrix.js\n"
-        {
-          echo 'sparse-checkout<<EOF'
-          echo "$SPARSE_CHECKOUT"
-          echo EOF
-        } >> "$GITHUB_OUTPUT"
-      shell: bash
-
-    - name: Checkout repo
+    - name: Checkout required files
       uses: actions/checkout@v4
       with:
-        sparse-checkout: ${{ steps.build-sparse-checkout.outputs.sparse-checkout }}
+        sparse-checkout: |
+          ${{ inputs.build-xml }}
+          ${{ inputs.projects-json }}
+          ${{ inputs.config-file }}
+          changes/build-matrix.js
+        sparse-checkout-cone-mode: false
 
     - name: Install Node.js
       uses: actions/setup-node@v4
@@ -92,6 +80,7 @@ runs:
           return script(github, context, core)
 
     - name: Debug read projects
+      if: ${{ runner.debug == '1' }}
       run: |
         echo "Read projects from JSON: ${result}"
       shell: bash
@@ -99,6 +88,7 @@ runs:
         result: ${{ toJson(steps.read-projects.outputs) }}
 
     - name: Debug build projects
+      if: ${{ runner.debug == '1' }}
       run: |
         echo "Build projects from XML: ${result}"
       shell: bash
@@ -110,6 +100,9 @@ runs:
       uses: actions/github-script@v7
       env:
         projects: ${{ steps.read-projects.outputs.result || steps.build-projects.outputs.projects }}
+        queries: ${{ inputs.queries }}
+        config_file: ${{ inputs.config-file }}
+        config: ${{ inputs.config }}
       with:
         script: |
           const path = require('node:path')
@@ -118,6 +111,7 @@ runs:
           return script(github, context, core)
 
     - name: Debug matrix
+      if: ${{ runner.debug == '1' }}
       run: |
         echo "${result}"
       shell: bash
