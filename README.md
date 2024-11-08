@@ -9,6 +9,8 @@ For an example of how to use it for PR scans, see the [`./samples/sample-codeql-
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
+See `[Alternatives](#alternatives)` for other ways to achieve the same goal.
+
 > [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
 
@@ -68,11 +70,13 @@ This will also need a rule to require branches to be up to date before merging.
 
 You may wish to bypass this rule occasionally, so remember to allow for that appropriately, and consider whether you will require a full scan of the repository at that time to ensure changes are scanned. You can use a `workflow_dispatch` trigger on a full scheduled workflow to allow for this.
 
-### Changes
+### Scanning changes in PRs
 
 The `changes` Action looks for changes in your defined project structure.
 
 It also sets the CodeQL configuration to use for the rest of the workflow.
+
+For an example of how to use it for PR scans, see [`./samples/sample-codeql-monorepo-pr-workflow.yml`](./samples/sample-codeql-monorepo-pr-workflow.yml)
 
 #### Setting project structure
 
@@ -152,6 +156,22 @@ Similarly, you can pass in a global `config` or `config-file` input, which use t
 
 The effective config used is a combination of the inputs created from the paths of the project, and any queries set in the separate `queries` input to this Action, overlaid with the content of the `config` or `config-file` inputs.
 
+### Whole repo scanning
+
+In contrast to the `changes` Action, the `whole-repo` Action allows scanning the entire monorepo in a scheduled scan.
+
+This is useful for taking advantage of new CodeQL or 3rd party SAST improvements on existing code.
+
+Doing this parallel scan can make scanning the whole monorepo feasible on much smaller runners, and cut the wall-clock time for a scan to acceptable levels.
+
+It is also a way to ensure all code has been scanned recently, which may be required for compliance purposes.
+
+The Action takes much the same inputs as the `changes` Action, but does not accept an `extra-globs` input, as it is not looking for changes in the repository.
+
+Each project, as defined in the projects input, is scanned in parallel, and the results are uploaded independently.
+
+For a scheduled scan example, see [`./samples/sample-codeql-monorepo-whole-repo-workflow.yml`](./samples/sample-codeql-monorepo-whole-repo-workflow.yml)
+
 ### Scan
 
 The `scan` Action scans any changed projects using CodeQL (or optionally another tool), using just the changes to the defined projects.
@@ -218,3 +238,13 @@ See the [SUPPORT](SUPPORT.md) file.
 The `changes` Action relies on the [`dorny/paths-filter`](https://github.com/dorny/paths-filter/) Action.
 
 See the [CHANGELOG](CHANGELOG.md), [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md), [SUPPORT](SUPPORT.md), [CODE OF CONDUCT](CODE_OF_CONDUCT.md) and [PRIVACY](PRIVACY.md) files for more information.
+
+### Alternatives
+
+This tool is designed to provide a build-system-agnostic way to split up a monorepo for scanning, but it is far from the only way to efficiently scan a monorepo.
+
+A monorepo-friendly build tool can be used to define build targets and dependencies, check out only the required code to build the target, and run custom commands on that target.
+
+You can inject CodeQL into the build tool as such as custom command; for compiled languages you can instrument the build process to watch for the build commands and run CodeQL on the output; or you can run CodeQL on the subset of the checked out code that is required to build the target.
+
+It will be necessary to keep track of the CodeQL category assigned to each build target, to avoid clashes.
