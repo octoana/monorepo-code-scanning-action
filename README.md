@@ -248,3 +248,5 @@ A monorepo-friendly build tool can be used to define build targets and dependenc
 You can inject CodeQL into the build tool as such as custom command; for compiled languages you can instrument the build process to watch for the build commands and run CodeQL on the output; or you can run CodeQL on the subset of the checked out code that is required to build the target.
 
 It will be necessary to keep track of the CodeQL category assigned to each build target, to avoid clashes.
+
+See the GitHub documentation on [Using code scanning with your existing CI system](https://docs.github.com/en/enterprise-cloud@latest/code-security/code-scanning/integrating-with-code-scanning/using-code-scanning-with-your-existing-ci-system)
