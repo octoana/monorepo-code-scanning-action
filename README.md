@@ -206,7 +206,7 @@ To allow this, you need to give the workflow the `closed` type on the `pull_requ
 
 ## Limitations
 
-The custom CodeQL analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
+The custom CodeQL/other tool analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
 
 This tool cannot help with a monolith that cannot be split up into smaller projects.
 
