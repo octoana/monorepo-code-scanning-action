@@ -9,7 +9,7 @@ For an example of how to use it for PR scans, see the [`./samples/sample-codeql-
 
 The steps pass information along to each other to work properly, so you need to use the format defined in that workflow, altering the inputs as required.
 
-See `[Alternatives](#alternatives)` for other ways to achieve the same goal.
+See [Alternatives](#alternatives) for other ways to achieve the same goal.
 
 > [!NOTE]
 > This is an _unofficial_ tool created by Field Security Specialists, and is not officially supported by GitHub.
