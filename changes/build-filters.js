@@ -2,7 +2,6 @@ const yaml = require("yaml");
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const tmp = require('tmp');
 
 function run(github, context, core) {
   const raw_projects = process.env.projects;
