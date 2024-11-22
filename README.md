@@ -80,11 +80,21 @@ For an example of how to use it for PR scans, see [`./samples/sample-codeql-mono
 
 #### Setting project structure
 
-The project structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of a C# build XML file in the `build-xml` input.
+The project structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of an MSBuild XML file in the `build-xml` input.
 
 It has several purposes - it defines the paths that are watched for changes, and checked out, and also defines CodeQL configuration options.
 
-When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary. You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
+##### MSBuild file parsing
+
+You can see an example of this XML format in this repository in `./samples/build-projects.xml`.
+
+Currently parsing relies on the projects being defined in exactly the format in the example - with an `ItemGroup` structure.
+
+If you use a `PropertyGroup` or have targets that don't conform to a simple structure that is defined in this way, you may need to write custom parsing of your MSBuild files to properly extract and group the folders and files needed to successfully build the projects.
+
+When using `build-xml` you will need to define any variables used in the input file with concrete values, in a `variables` input, defining them in a YAML format dictionary. A variable looks like `$(FolderADir)`, for example.
+
+##### JSON project structure
 
 > [!NOTE]
 > Do not use `./` to lead path or file names
@@ -133,7 +143,7 @@ An example of a JSON file using a `queries`, `build-mode` and `files` keys is:
 
 If you dynamically generate the project JSON file, then it is best to save it outside of the Actions workspace, such as in `$RUNNER_TEMP`, since a checkout may overwrite it.
 
-#### Setting custom language globs
+###### Setting custom language globs
 
 The files checked for changes in the project `paths` are not all of the files in that path, but a subset, defined per language. There is a bundled set of globs defined for each language, which are searched for in the project paths defined for the project.
 
@@ -146,7 +156,7 @@ You can add to that with `extra-globs` input to the `changes` Action, which take
   ...
 ```
 
-#### Configuring CodeQL
+###### Configuring CodeQL
 
 In addition to settings the `queries` key at the language or project level, you can also set it globally.
 
@@ -160,13 +170,13 @@ The effective config used is a combination of the inputs created from the paths 
 
 In contrast to the `changes` Action, the `whole-repo` Action allows scanning the entire monorepo in a scheduled scan.
 
-This is useful for taking advantage of new CodeQL or 3rd party SAST improvements on existing code.
+This is useful for taking advantage of new CodeQL queries or 3rd party SAST improvements, on existing code.
 
 Doing this parallel scan can make scanning the whole monorepo feasible on much smaller runners, and cut the wall-clock time for a scan to acceptable levels.
 
 It is also a way to ensure all code has been scanned recently, which may be required for compliance purposes.
 
-The Action takes much the same inputs as the `changes` Action, but does not accept an `extra-globs` input, as it is not looking for changes in the repository.
+The Action takes much the same inputs as the `changes` Action, but does not accept an `extra-globs` input, as it is not looking for changes in the repository. There is also no need to use the `republish-sarif` Action with it.
 
 Each project, as defined in the projects input, is scanned in parallel, and the results are uploaded independently.
 
@@ -176,7 +186,7 @@ For a scheduled scan example, see [`./samples/sample-codeql-monorepo-whole-repo-
 
 The `scan` Action scans any changed projects using CodeQL (or optionally another tool), using just the changes to the defined projects.
 
-A sparse checkout of the project in which changes happened is used to speed up the checkout and target scans at just that project.
+A sparse checkout of the project in which changes happened is used to speed up the checkout, and target scans at just that project.
 
 The scan can use a custom code scanning workflow to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/workflows/code-scanning-custom-analysis.yml` in your repository. This is used for the `build-mode` of `manual` or `other`.
 
@@ -205,6 +215,10 @@ To allow this, you need to give the workflow the `closed` type on the `pull_requ
 ```
 
 ## Limitations
+
+Actions can create matrix jobs with a maximum of 256 targets. This means that monorepos with more than 256 projects must be divided up into more than one workflow, until something is done to deal with this in this Action (if that is possible).
+
+The checks feature of GitHub can take a maximum of 1000 checks with the same name. That means that monorepos with more than 1000 projects cannot be scanned with them all scanned individually; so several must be grouped together to get under this 1000 threshold.
 
 The custom CodeQL/other tool analysis requires manual control over which build steps are applied to which project, in a single workflow, in contrast to the declarative design of the rest of the workflow.
 
