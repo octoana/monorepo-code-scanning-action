@@ -7,7 +7,9 @@ runs:
     - name: Checkout project folders to scan
       uses: actions/checkout@v4
       with:
-        sparse-checkout: ${{ matrix.project.sparse_checkout }}
+        sparse-checkout: |
+          ${{ matrix.project.sparse_checkout }}
+          .github/workflows/code-scanning-custom-analysis.yml
         sparse-checkout-cone-mode: false
 
     # Initializes CodeQL for scanning, if required
