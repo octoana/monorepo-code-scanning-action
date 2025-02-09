@@ -9,7 +9,7 @@ runs:
       with:
         sparse-checkout: |
           ${{ matrix.project.sparse_checkout }}
-          .github/actions/code-scanning-custom-analysis/action.yml
+          .github/actions/code-scanning-custom-analysis/**/*
         sparse-checkout-cone-mode: false
 
     # Initializes CodeQL for scanning, if required
