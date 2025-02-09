@@ -21,6 +21,14 @@ runs:
         build-mode: ${{ matrix.project.build_mode }}
         config: ${{  matrix.project.codeql_config }}
 
+    # Show manual Action, if using manual/other build mode
+    - name: Initialize CodeQL and build (manual)
+      if: matrix.project.build_mode == 'manual' || matrix.project.build_mode == 'other'
+      run: |
+        echo "Build mode: ${{ matrix.project.build_mode }}"
+        ls -la ./.github/actions/code-scanning-custom-analysis/*
+      shell: bash
+
     # Build the project, manually, if required
     # Scanning with CodeQL and uploading the SARIF will be handled by the last step, below
     - name: Initialize CodeQL and build (manual)
