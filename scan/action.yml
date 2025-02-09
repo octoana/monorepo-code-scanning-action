@@ -9,7 +9,7 @@ runs:
       with:
         sparse-checkout: |
           ${{ matrix.project.sparse_checkout }}
-          .github/workflows/code-scanning-custom-analysis.yml
+          .github/actions/code-scanning-custom-analysis/*
         sparse-checkout-cone-mode: false
 
     # Initializes CodeQL for scanning, if required
@@ -25,7 +25,7 @@ runs:
     # Scanning with CodeQL and uploading the SARIF will be handled by the last step, below
     - name: Initialize CodeQL and build (manual)
       if: matrix.project.build_mode == 'manual'
-      uses: ./.github/workflows/code-scanning-custom-analysis.yml
+      uses: ./.github/actions/code-scanning-custom-analysis/
       with:
         language: ${{  matrix.project.language }}
         codeql-config: ${{  matrix.project.codeql_config }}
@@ -35,7 +35,7 @@ runs:
     # This will require a SARIF upload step in the custom analysis workflow
     - name: Scan project (non CodeQL)
       if: matrix.project.build_mode == 'other'
-      uses: ./.github/workflows/code-scanning-custom-analysis.yml
+      uses: ./.github/actions/code-scanning-custom-analysis/
       with:
         language: ${{  matrix.project.language }}
         name: ${{  matrix.project.name }}
