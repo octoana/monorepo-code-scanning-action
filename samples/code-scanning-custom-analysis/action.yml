@@ -1,0 +1,54 @@
+name: Custom Code Scanning Analysis
+description: Custom code scanning analysis for Sample C# monorepo
+inputs:
+  language:
+    description: 'Language to analyze'
+    required: true
+    type: string
+  codeql-config:
+    description: 'CodeQL configuration'
+    required: true
+    type: string
+  name:
+    description: 'Name of the project'
+    required: true
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialise for C#
+      if: ${{ inputs.language == 'csharp' }}
+      uses: github/codeql-action/init@v3
+      with:
+        languages: csharp
+        config: ${{ inputs.codeql-config }}
+
+      # If you wish to specify custom queries, you can do so here or in a config file.
+      # You can divide them up by project name in the .github folder, for example:
+      # config-file: .github/${{ inputs.name }}/codeql-config.yml
+
+      # By default, queries listed here will override any specified in a config file.
+      # Prefix the list here with "+" to use these queries and those in the config file.
+
+      # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+      # queries: security-extended,security-and-quality
+
+  # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
+  # If this step fails, then you should remove it and run the build manually (see below)
+  # - name: Autobuild
+  #  uses: github/codeql-action/autobuild@v3
+
+  # ℹ️ Command-line programs to run using the OS shell.
+  # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+  #   If the Autobuild fails above, remove it and uncomment the following three lines.
+  #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
+
+    - name: Build for C#
+      if: ${{ inputs.language == 'csharp' && inputs.name == 'Project1' }}
+      run: |
+        cd src/FolderA && dotnet build
+        cd "$GITHUB_WORKSPACE"
+        cd src/FolderB && dotnet build
+      shell: bash
