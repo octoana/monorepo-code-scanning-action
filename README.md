@@ -188,9 +188,9 @@ The `scan` Action scans any changed projects using CodeQL (or optionally another
 
 A sparse checkout of the project in which changes happened is used to speed up the checkout, and target scans at just that project.
 
-The scan can use a custom code scanning workflow to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/workflows/code-scanning-custom-analysis.yml` in your repository. This is used for the `build-mode` of `manual` or `other`.
+The scan can use a local custom code scanning Action to do manual build steps and any required preparation steps before the scanning, which must be located at `.github/actions/code-scanning-custom-analysis/` in your repository. This is used for the `build-mode` of `manual` or `other`.
 
-You can see an example of this custom workflow in this repository in [`./samples/code-scanning-custom-analysis.yml`](./samples/code-scanning-custom-analysis.yml).
+You can see an example of this custom workflow in this repository in [`./samples/code-scanning-custom-analysis/`](./samples/code-scanning-custom-analysis/).
 
 This must have conditional checks to apply the correct build steps for the language and project.
 

@@ -48,7 +48,7 @@ jobs:
           # This takes the form:
           # {
           #    "csharp": {
-          #      "projectName": ["FolderA", "FolderB"]
+          #      "projects": [ "projectName": ["FolderA", "FolderB"] ]
           #    }
           # }
 
@@ -65,4 +65,3 @@ jobs:
     steps:
       - name: Analyze code
         uses: advanced-security/monorepo-code-scanning-action/scan@main
-        # custom-analysis: true

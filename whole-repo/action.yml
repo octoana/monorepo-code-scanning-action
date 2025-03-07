@@ -33,6 +33,7 @@ runs:
           ${{ inputs.build-xml }}
           ${{ inputs.projects-json }}
           ${{ inputs.config-file }}
+          changes/build-projects-from-xml.js
           changes/build-matrix.js
         sparse-checkout-cone-mode: false
 
