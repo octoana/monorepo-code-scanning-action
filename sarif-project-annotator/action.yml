@@ -14,5 +14,21 @@ inputs:
     required: true
     description: 'The output SARIF file path'
 runs:
-  using: node20
-  main: sarif-project-annotator.js
+  # using: node20
+  # main: sarif-project-annotator.js
+  using: 'composite'
+  steps:
+    - name: Run SARIF project annotator via github-script
+      id: annotate-sarif
+      #if: ${{ inputs.projects-json == '' && inputs.build-xml != '' }}
+      uses: actions/github-script@v7
+      # env:
+      #   filename: ${{ inputs.build-xml }}
+      #   variables: ${{ inputs.variables }}
+      with:
+        result-encoding: string
+        script: |
+          const path = require('node:path')
+          const action_path = process.env.GITHUB_ACTION_PATH
+          const script = require(path.join(action_path, 'sarif-project-annotator.js'))
+          return script(github, context, core)  
