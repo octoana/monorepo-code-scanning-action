@@ -1,0 +1,18 @@
+name: Annotate
+description: 'Annotate SARIF to include information about the projects on each alert'
+inputs:
+  project:
+    description: 'The name of the project to annotate as a tag'
+    required: true
+  # projects-json:
+  #   description: 'TESTING ONLY: Path to the JSON file that defines the projects to build'
+  #   required: false
+  sarif_file:
+    required: true
+    description: 'The CodeQL SARIF result file'
+  output_file:
+    required: true
+    description: 'The output SARIF file path'
+runs:
+  using: node20
+  main: sarif-project-annotator.js
