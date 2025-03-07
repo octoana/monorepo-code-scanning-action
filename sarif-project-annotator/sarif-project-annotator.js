@@ -1,7 +1,7 @@
 //const core = require('@actions/core')
 const fs = require('fs').promises
 
-async function run() {
+async function run(github, context, core) {
   try {
     // Get input parameters
     const project = core.getInput('project', { required: true })

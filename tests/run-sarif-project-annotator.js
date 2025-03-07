@@ -19,7 +19,7 @@ async function testSarifProjectAnnotator() {
     }
 
     // Run the annotator
-    await run()
+    await run(null,null,core)
 
     // Verify the output
     const outputContent = await fs.readFile('samples/output.sarif', 'utf8')
