@@ -57,3 +57,20 @@ runs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
+        upload: false
+        output: sarif-results
+
+    - name: Annotate CodeQL Alert SARIF with Project tag
+      if: matrix.project.build_mode != 'other'  
+      uses: advanced-security/monorepo-code-scanning-action/republish-sarif@annotate-sarif
+      with:
+        project: ${{ matrix.project.name }}
+        sarif_file: sarif-results/${{matrix.language}}.sarif
+        output_file: sarif-results/${{matrix.language}}-annotated.sarif
+
+    - name: Upload SARIF with project tags
+      if: matrix.project.build_mode != 'other'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        category: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
+        sarif_file: sarif-results/${{matrix.language}}-annotated.sarif
