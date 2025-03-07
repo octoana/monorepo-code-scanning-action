@@ -62,7 +62,7 @@ runs:
 
     - name: Annotate CodeQL Alert SARIF with Project tag
       if: matrix.project.build_mode != 'other'  
-      uses: advanced-security/monorepo-code-scanning-action/republish-sarif@annotate-sarif
+      uses: advanced-security/monorepo-code-scanning-action/sarif-project-annotator@annotate-sarif
       with:
         project: ${{ matrix.project.name }}
         sarif_file: sarif-results/${{matrix.project.language}}.sarif
