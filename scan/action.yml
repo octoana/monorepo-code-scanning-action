@@ -80,21 +80,17 @@ runs:
         script: |
           const dbLocations = JSON.parse('${{ steps.codeql-analyze.outputs.db-locations }}');
           const language = Object.keys(dbLocations)[0];
-          return { sarif_file: `${{ steps.codeql-analyze.outputs.sarif-output }}/${language}.sarif` };
+          const sarifFilePath = `${{ steps.codeql-analyze.outputs.sarif-output }}/${language}.sarif`;
+          console.log(`SARIF file path: ${sarifFilePath}`);
+          return { sarif_file: sarifFilePath };
 
-    # # Validate location of sarif results
-    # - name: echo dir
-    #   if: matrix.project.build_mode != 'other'
-    #   run: |
-    #     ls -ls
-    #     ls -ls sarif-results
-    #     # ex: 
-    #     # total 8
-    #     # 4 drwxr-xr-x 3 runner docker 4096 Mar 10 19:51 packages
-    #     # 4 drwxr-xr-x 2 runner docker 4096 Mar 10 19:52 sarif-results
-    #     # total 792
-    #     # 792 -rw-r--r-- 1 runner docker 809296 Mar 10 19:52 javascript.sarif
-    #   shell: bash
+    # Validate location of sarif results
+    - name: echo dir
+      if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
+      run: |
+        ls -ls
+        ls -ls ${{ steps.codeql-analyze.outputs.db-locations }}
+      shell: bash
 
     - name: Annotate CodeQL Alert SARIF with Project tag
       if: matrix.project.build_mode != 'other'  
@@ -102,7 +98,7 @@ runs:
       with:
         project: ${{ matrix.project.name }}
         sarif_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}
-        output_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}
+        output_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}        
 
     - name: Upload SARIF with project tags
       if: matrix.project.build_mode != 'other'
