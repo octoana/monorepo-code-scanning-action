@@ -4,9 +4,14 @@ const fs = require('fs').promises
 async function run(github, context, core) {
   try {
     // Get input parameters
-    const project = core.getInput('project', { required: true })
-    const sarifInput = core.getInput('sarif_file', { required: true })
-    const outputFile = core.getInput('output_file', { required: true })
+    const project = process.env.projects
+    const sarifInput = process.env.sarif_file
+    const outputFile = process.env.output_file
+
+    //Fix was to pass as env vars - Error: Action failed with error: Error: Input required and not supplied: project
+    // const project = core.getInput('project', { required: true })
+    // const sarifInput = core.getInput('sarif_file', { required: true })
+    // const outputFile = core.getInput('output_file', { required: true })
 
     // Read the input SARIF file  (note this does convert value:1.0 to value:1 )
     const sarifContent = await fs.readFile(sarifInput, 'utf8')
