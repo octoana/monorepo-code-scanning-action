@@ -113,7 +113,7 @@ runs:
       if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
+        name: ${{ matrix.project.name }}-debug-sarif
         path: ${{ steps.codeql-analyze.outputs.sarif-output }}/*.sarif
 
 
