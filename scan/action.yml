@@ -62,32 +62,51 @@ runs:
 
     # Echo the outputs of the CodeQL analysis
     - name: Echo CodeQL Analysis Outputs
-      if: matrix.project.build_mode != 'other'
+      if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
       run: |
-        echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
-        echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
-        echo "SARIF ID: ${{ steps.codeql-analyze.outputs.sarif-id }}"
-      shell: bash        
-
-    # Validate location of sarif results
-    - name: echo dir
-      if: matrix.project.build_mode != 'other'
-      run: |
-        ls -ls
-        ls -ls sarif-results
+      echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
+      echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
+      echo "SARIF ID: ${{ steps.codeql-analyze.outputs.sarif-id }}"
       shell: bash
+
+    # Parse the db-locations output and set the sarif_file path
+    # - db-locations: {javascript:/home/runner/work/_temp/codeql_databases/javascript}
+    # - sarif-output: /home/runner/work/sample-javascript-monorepo/sample-javascript-monorepo/sarif-results
+    - name: Set SARIF file path
+      id: set-sarif-file-path
+      if: matrix.project.build_mode != 'other'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const dbLocations = JSON.parse('${{ steps.codeql-analyze.outputs.db-locations }}');
+          const language = Object.keys(dbLocations)[0];
+          return { sarif_file: `${{ steps.codeql-analyze.outputs.sarif-output }}/${language}.sarif` };
+
+    # # Validate location of sarif results
+    # - name: echo dir
+    #   if: matrix.project.build_mode != 'other'
+    #   run: |
+    #     ls -ls
+    #     ls -ls sarif-results
+    #     # ex: 
+    #     # total 8
+    #     # 4 drwxr-xr-x 3 runner docker 4096 Mar 10 19:51 packages
+    #     # 4 drwxr-xr-x 2 runner docker 4096 Mar 10 19:52 sarif-results
+    #     # total 792
+    #     # 792 -rw-r--r-- 1 runner docker 809296 Mar 10 19:52 javascript.sarif
+    #   shell: bash
 
     - name: Annotate CodeQL Alert SARIF with Project tag
       if: matrix.project.build_mode != 'other'  
       uses: advanced-security/monorepo-code-scanning-action/sarif-project-annotator@annotate-sarif
       with:
         project: ${{ matrix.project.name }}
-        sarif_file: sarif-results/${{matrix.project.language}}-${{ matrix.project.name }}.sarif # this needs fixed.
-        output_file: sarif-results/${{matrix.project.language}}-${{ matrix.project.name }}-annotated.sarif
+        sarif_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}
+        output_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}
 
     - name: Upload SARIF with project tags
       if: matrix.project.build_mode != 'other'
       uses: github/codeql-action/upload-sarif@v3
       with:
         category: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
-        sarif_file: sarif-results/${{matrix.project.language}}-${{ matrix.project.name }}-annotated.sarif
+        sarif_file: ${{ steps.set-sarif-file-path.outputs.sarif_file }}
