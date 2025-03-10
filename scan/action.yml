@@ -110,7 +110,7 @@ runs:
         sarif_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ matrix.project.name }}-${{ steps.set-sarif-file-name.outputs.result }}
 
     - name: Upload CodeQL Analysis
-      if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
+      if: matrix.project.build_mode != 'other' 
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project.name }}-debug-sarif
