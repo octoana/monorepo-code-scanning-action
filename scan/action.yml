@@ -64,9 +64,9 @@ runs:
     - name: Echo CodeQL Analysis Outputs
       if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
       run: |
-      echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
-      echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
-      echo "SARIF ID: ${{ steps.codeql-analyze.outputs.sarif-id }}"
+        echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
+        echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
+        echo "SARIF ID: ${{ steps.codeql-analyze.outputs.sarif-id }}"
       shell: bash
 
     # Parse the db-locations output and set the sarif_file path
