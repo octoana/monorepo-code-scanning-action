@@ -72,7 +72,7 @@ runs:
     # Validate location of sarif results
     - name: echo dir
       if: matrix.project.build_mode != 'other'
-      script: |
+      run: |
         ls -ls
         ls -ls sarif-results
       shell: bash
