@@ -75,7 +75,7 @@ runs:
       script: |
         ls -ls
         ls -ls sarif-results
-      
+      shell: bash
 
     - name: Annotate CodeQL Alert SARIF with Project tag
       if: matrix.project.build_mode != 'other'  
