@@ -62,7 +62,7 @@ runs:
 
     # Echo the outputs of the CodeQL analysis
     - name: Echo CodeQL Analysis Outputs
-      if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
+      if: matrix.project.build_mode != 'other' && && runner.debug == '1'
       run: |
         echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
         echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
@@ -86,9 +86,9 @@ runs:
           console.log(`SARIF file name: ${sarifFilePath}`);          
           return sarifFilePath;
 
-    # Validate location of sarif results
+    # DEBUG: Validate location of sarif results
     - name: echo dir
-      if: matrix.project.build_mode != 'other' && env.ACTIONS_RUNNER_DEBUG == 'true'
+      if: matrix.project.build_mode != 'other' && && runner.debug == '1'
       run: |
         ls -ls
         ls -ls ${{ steps.codeql-analyze.outputs.db-locations }}
@@ -109,8 +109,9 @@ runs:
         category: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
         sarif_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ matrix.project.name }}-${{ steps.set-sarif-file-name.outputs.result }}
 
+    # DEBUG: Upload the SARIF file for debugging
     - name: Upload CodeQL Analysis
-      if: matrix.project.build_mode != 'other' 
+      if: matrix.project.build_mode != 'other' && runner.debug == '1'
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project.name }}-debug-sarif
