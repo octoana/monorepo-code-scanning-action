@@ -79,4 +79,6 @@ async function run(github, context, core) {
   }
 }
 
-module.exports = { run }
+module.exports = (github, context, core) => {
+  run(github, context, core).then(() => {});
+};
