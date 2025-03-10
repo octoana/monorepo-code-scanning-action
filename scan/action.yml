@@ -62,7 +62,7 @@ runs:
 
     # Echo the outputs of the CodeQL analysis
     - name: Echo CodeQL Analysis Outputs
-      if: matrix.project.build_mode != 'other' && && runner.debug == '1'
+      if: matrix.project.build_mode != 'other' && runner.debug == '1'
       run: |
         echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
         echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
@@ -88,7 +88,7 @@ runs:
 
     # DEBUG: Validate location of sarif results
     - name: echo dir
-      if: matrix.project.build_mode != 'other' && && runner.debug == '1'
+      if: matrix.project.build_mode != 'other' && runner.debug == '1'
       run: |
         ls -ls
         ls -ls ${{ steps.codeql-analyze.outputs.db-locations }}
