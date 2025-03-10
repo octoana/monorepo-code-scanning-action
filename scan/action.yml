@@ -60,18 +60,9 @@ runs:
         upload: false
         output: sarif-results
 
-    # Echo the outputs of the CodeQL analysis
-    - name: Echo CodeQL Analysis Outputs
-      if: matrix.project.build_mode != 'other' && runner.debug == '1'
-      run: |
-        echo "DB Locations: ${{ steps.codeql-analyze.outputs.db-locations }}"
-        echo "SARIF Output: ${{ steps.codeql-analyze.outputs.sarif-output }}"
-        echo "SARIF ID: ${{ steps.codeql-analyze.outputs.sarif-id }}"
-      shell: bash
-
     # Parse the db-locations output and get the sarif file name from the analysis
-    # - db-locations: {javascript:/home/runner/work/_temp/codeql_databases/javascript}
-    # - sarif-output: /home/runner/work/sample-javascript-monorepo/sample-javascript-monorepo/sarif-results
+    # - db-locations ex: {javascript:/home/runner/work/_temp/codeql_databases/javascript}
+    # - sarif-output ex: /home/runner/work/sample-javascript-monorepo/sample-javascript-monorepo/sarif-results
     - name: Set SARIF file name
       id: set-sarif-file-name
       if: matrix.project.build_mode != 'other'
@@ -85,14 +76,6 @@ runs:
           console.log(`SARIF path: ${{ steps.codeql-analyze.outputs.sarif-output }}/`);
           console.log(`SARIF file name: ${sarifFilePath}`);          
           return sarifFilePath;
-
-    # DEBUG: Validate location of sarif results
-    - name: echo dir
-      if: matrix.project.build_mode != 'other' && runner.debug == '1'
-      run: |
-        ls -ls
-        ls -ls ${{ steps.codeql-analyze.outputs.db-locations }}
-      shell: bash
 
     - name: Annotate CodeQL Alert SARIF with Project tag
       if: matrix.project.build_mode != 'other'  
