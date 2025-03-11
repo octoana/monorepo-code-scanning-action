@@ -25,7 +25,7 @@ runs:
       
       #Pass these in to env to avoid: Error: Action failed with error: Error: Input required and not supplied: project
       env:
-        projects: ${{ inputs.project }}
+        project: ${{ inputs.project }}
         sarif_file: ${{ inputs.sarif_file }}
         output_file: ${{ inputs.output_file }}
       with:
@@ -34,4 +34,4 @@ runs:
           const path = require('node:path')
           const action_path = process.env.GITHUB_ACTION_PATH
           const script = require(path.join(action_path, 'sarif-project-annotator.js'))
-          return script(github, context, core)  
+          return await script(github, context, core)  

@@ -4,7 +4,7 @@ const fs = require('fs').promises
 async function run(github, context, core) {
   try {
     // Get input parameters
-    const project = process.env.projects
+    const project = process.env.project
     const sarifInput = process.env.sarif_file
     const outputFile = process.env.output_file
 
@@ -65,11 +65,12 @@ async function run(github, context, core) {
 
           // If it does, remove it
           if (existingTagIndex !== -1) {
-            console.log(`Removing existing project tag: ${rule.properties.tags[existingTagIndex]}`)
+            core.debug(`Removing existing project tag: ${rule.properties.tags[existingTagIndex]}`)
             rule.properties.tags.splice(existingTagIndex, 1)
           }
 
           // Add the new project tag
+          core.debug(`Adding new project tag: project/${project} to rule ${rule.id}`)
           rule.properties.tags.push(`project/${project}`)
         }
       }
@@ -78,12 +79,13 @@ async function run(github, context, core) {
     // Write the updated SARIF to the output file
     await fs.writeFile(outputFile, JSON.stringify(sarifData, null, 2), 'utf8')
 
-    console.log(`Updated SARIF file written to ${outputFile}`)
+    console.log(`Updated SARIF file for project '${project}' written to ${outputFile}`)
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
 }
 
-module.exports = (github, context, core) => {
-  run(github, context, core).then(() => {});
+module.exports = async (github, context, core) => {
+  //run(github, context, core).then(() => {});
+  await run(github, context, core)
 };
