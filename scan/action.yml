@@ -78,12 +78,19 @@ runs:
           return sarifFilePath;
 
     - name: Annotate CodeQL Alert SARIF with Project tag
-      if: matrix.project.build_mode != 'other'  
-      uses: advanced-security/monorepo-code-scanning-action/sarif-project-annotator@annotate-sarif
-      with:
+      id: annotate-sarif
+      uses: actions/github-script@v7
+      env:
         project: ${{ matrix.project.name }}
         sarif_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ steps.set-sarif-file-name.outputs.result }}
         output_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ matrix.project.name }}-${{ steps.set-sarif-file-name.outputs.result }}
+      with:
+        result-encoding: string
+        script: |
+          const path = require('node:path')
+          const action_path = process.env.GITHUB_ACTION_PATH
+          const script = require(path.join(action_path, 'sarif-project-annotator.js'))
+          return await script(github, context, core)
 
     - name: Upload SARIF with project tags
       if: matrix.project.build_mode != 'other'
