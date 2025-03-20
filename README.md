@@ -194,6 +194,54 @@ You can see an example of this custom workflow in this repository in [`./samples
 
 This must have conditional checks to apply the correct build steps for the language and project.
 
+### Project Annotator
+
+The `sarif-project-annotator` action is used to add project tagging information to SARIF output files from a CodeQL analysis. When scanning multiple projects in a monorepo, this action helps to identify which alerts belong to which project by adding project tags to alert rules.
+
+This action processes CodeQL SARIF files and modifies the `properties.tags` array for each rule to include a `project/{project-name}` tag. This tag allows you to more easily filter and identify the project of origin in an alert.
+
+The project annotator requires three inputs:
+
+- `project`: The name of the project to annotate as a tag (required)
+- `sarif_file`: The path to the CodeQL SARIF result file (required)
+- `output_file`: The path where the modified SARIF file should be saved (required)
+
+Here's an example of how to use the action within your workflow:
+
+```yaml
+    # Perform CodeQL scan but do not upload results (for further SARIF processing)
+    - name: Perform CodeQL Analysis
+      id: codeql-analyze
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.project.language }};project:${{ matrix.project.name }}"
+        upload: false
+        output: sarif-results
+
+    # Parse the db-locations output and get the sarif file name from the analysis
+    - name: Set SARIF file name
+      id: set-sarif-file-name
+      uses: actions/github-script@v7
+      with:
+        result-encoding: string
+        script: |
+          const dbLocations = JSON.parse('${{ steps.codeql-analyze.outputs.db-locations }}');
+          const language = Object.keys(dbLocations)[0];
+          const sarifFilePath = `${language}.sarif`;  
+          return sarifFilePath;
+
+    # Annotate the SARIF with project tags
+    - name: Annotate CodeQL Alert SARIF with Project tag
+      uses: advanced-security/monorepo-code-scanning-action/sarif-project-annotator@main #Recommended: pin to a hash instead of `main`
+      with:
+        project: ${{ matrix.project.name }}
+        sarif_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ steps.set-sarif-file-name.outputs.result }}
+        output_file: ${{ steps.codeql-analyze.outputs.sarif-output }}/${{ matrix.project.name }}-${{ steps.set-sarif-file-name.outputs.result }}
+```
+
+Known limitations:
+- The ability to filter the Advanced Security Code Scanning dashboards by tag is globally implemented per rule - this design limits the ability to filter by unique tags.  Viewing or API/Webhook export of the Alert will contain the proper data.
+
 ### Republish
 
 The  `republish-sarif` Action allows the unscanned parts of the project to pass the required CodeQL checks.
