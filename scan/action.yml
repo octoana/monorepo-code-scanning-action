@@ -87,7 +87,7 @@ runs:
         script: |
           const path = require('node:path')
           const action_path = process.env.GITHUB_ACTION_PATH
-          const script = require(path.join(action_path, 'sarif-project-annotator.js'))
+          const script = require(path.join(action_path, '..', 'sarif-project-annotator', 'sarif-project-annotator.js'))
           return await script(github, context, core)
 
     # Upload the annotated SARIF file to GitHub Code Scanning service
