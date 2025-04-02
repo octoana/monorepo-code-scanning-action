@@ -80,7 +80,7 @@ For an example of how to use it for PR scans, see [`./samples/sample-codeql-mono
 
 #### Setting project structure
 
-The project structure can either be defined in a JSON file and provided by name in the `project-json` input, or can be parsed out of an MSBuild XML file in the `build-xml` input.
+The project structure can either be defined in a JSON file and provided by name in the `projects-json` input, or can be parsed out of an MSBuild XML file in the `build-xml` input.
 
 It has several purposes - it defines the paths that are watched for changes, and checked out, and also defines CodeQL configuration options.
 
