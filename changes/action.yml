@@ -101,6 +101,7 @@ runs:
         result: ${{ toJson(steps.build-projects.outputs) }}
 
     - name: Build filters
+      echo "Build filters debugging..."
       id: build-filters
       uses: actions/github-script@v7
       env: 
