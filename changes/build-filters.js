@@ -40,6 +40,7 @@ function run(github, context, core) {
     ],
     python: [
       "**/*.{py}",
+      "**/*.py",
       "**/pyproject.toml",
       "**/Pipfile{,.lock}",
       "**/requirements.{txt,in}",
